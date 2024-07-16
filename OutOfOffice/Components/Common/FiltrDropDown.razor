@@ -1,0 +1,49 @@
+﻿@using OutOfOffice.Components.Common;
+@using Data;
+
+<Dropdown TItem="string" icon="fa fa-filter">
+    <ChildContent>
+        @foreach (checkboxOption filter in filter_list)
+        {
+            <tr>
+                <td>
+                    <label><InputCheckbox @bind-Value=@filter.Value></InputCheckbox> @filter.Text</label>
+                </td>
+            </tr>
+        }
+        <button @onclick="@(() => onClick())">Filtr</button>
+    </ChildContent>
+</Dropdown>
+
+@code {
+
+    [Parameter]
+    public List<checkboxOption> filter_list
+    {
+        get => _filter_list;
+        set
+        {
+            if (_filter_list == value) return;
+
+            _filter_list = value;
+            temp_filter_list.InvokeAsync(value);
+        }
+    }
+    public List<checkboxOption> _filter_list;
+
+    [Parameter]
+    public string icon { get; set; }
+
+    [Parameter]
+    public EventCallback<List<checkboxOption>> temp_filter_list { get; set; }
+
+
+    [Parameter]
+    public EventCallback<string> FiltrFunction { get; set; }
+
+    public void onClick()
+    {
+        FiltrFunction.InvokeAsync();
+    }
+
+}

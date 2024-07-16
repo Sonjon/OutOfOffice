@@ -1,0 +1,63 @@
+﻿@page "/LeaveRequestList"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+<PageTitle>LeaveRequest List</PageTitle>
+<button @onclick="@(() => AddLeaveRequest())">Add LeaveRequest</button>
+<CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
+    <RowButtons>
+        <td><button @onclick="@(() => Submit(context.ID))">Submit</button></td>
+        <td><button @onclick="@(() => Cancel(context.ID))">Cancel</button></td>
+    </RowButtons>
+</CustomTableComponent>
+
+@code {
+    List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        leaveRequests = await Backend.GetLeaveRequestsAsync();
+    }
+
+    protected async void Submit(int leaveRequest_id)
+    {
+        IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
+        foreach (LeaveRequest leaveRequest in query)
+        {
+            LeaveRequest leaveRequestUpdated = new LeaveRequest();
+            leaveRequestUpdated.Copy(leaveRequest);
+            leaveRequestUpdated.Status = LeaveRequestStatus.Submitted;
+            await Backend.Update_LeaveRequest(leaveRequest.ID, leaveRequestUpdated, leaveRequest);
+            leaveRequests = await Backend.GetLeaveRequestsAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected async void Cancel(int leaveRequest_id)
+    {
+        IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
+        foreach(LeaveRequest leaveRequest in query)
+        {
+            LeaveRequest leaveRequestUpdated = new LeaveRequest();
+            leaveRequestUpdated.Copy(leaveRequest);
+            leaveRequestUpdated.Status = LeaveRequestStatus.Canceled;
+            await Backend.Update_LeaveRequest(leaveRequest.ID, leaveRequestUpdated, leaveRequest);
+            leaveRequests = await Backend.GetLeaveRequestsAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected void AddLeaveRequest()
+    {
+        navigationManager.NavigateTo($"/LeaveRequestCreator");
+    }
+
+}

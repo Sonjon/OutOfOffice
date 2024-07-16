@@ -1,0 +1,54 @@
+﻿@using OutOfOffice.Components.Common;
+
+<Dropdown TItem="string" icon="fa fa-search">
+    <ChildContent>
+        <label><InputCheckbox @bind-Value=@temp_checkbox></InputCheckbox> Contains</label>
+        <InputText @bind-Value=@temp_search></InputText>
+        <button @onclick="@(() => onClick())">Search</button>
+    </ChildContent>
+</Dropdown>
+
+@code {
+    [Parameter]
+    public string icon { get; set; }
+    [Parameter]
+    public bool temp_checkbox { 
+        get => _temp_checkbox;
+        set
+        {
+            if (_temp_checkbox == value) return;
+
+            _temp_checkbox = value;
+            temp_checkboxChanged.InvokeAsync(value);
+        }
+    }
+    public bool _temp_checkbox;
+    [Parameter]
+    public string temp_search
+    {
+        get => _temp_search;
+        set
+        {
+            if (_temp_search == value) return;
+
+            _temp_search = value;
+            temp_searchChanged.InvokeAsync(value);
+        }
+    }
+    public string _temp_search;
+
+    [Parameter]
+    public EventCallback<bool> temp_checkboxChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> temp_searchChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SearchFunction { get; set; }
+
+    public void onClick()
+    {
+        SearchFunction.InvokeAsync();
+    }
+
+}

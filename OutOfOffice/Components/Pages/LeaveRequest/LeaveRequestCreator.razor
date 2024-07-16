@@ -1,0 +1,56 @@
+﻿@page "/LeaveRequestCreator"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+<PageTitle>Submit Leave Request</PageTitle>
+
+
+<EditForm Model=@newLeaveRequest OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Absence_Reason">Absence Reason</label>
+        <InputText @bind-Value=newLeaveRequest.Absence_Reason class="form-control" id="Absence_Reason" />
+    </div>
+    <div class="form-group">
+        <label for="Start_Date">Start Date</label>
+        <InputDate @bind-Value=newLeaveRequest.Start_Date class="form-control" id="Start_Date" />
+    </div>
+    <div class="form-group">
+        <label for="End_Date">End Date</label>
+        <InputDate @bind-Value=newLeaveRequest.End_Date class="form-select" id="End_Date" @bind-Value:format="dd"/>
+        </div>
+    <div class="form-group">
+        <label for="Comment">Comment</label>
+        <InputText @bind-Value=newLeaveRequest.Comment class="form-control" id="Comment" />
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+
+@code {
+    LeaveRequest newLeaveRequest = new LeaveRequest();
+
+    string LastSubmitResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        newLeaveRequest.Status = LeaveRequestStatus.New;
+        newLeaveRequest.EmployeeId = 7; //add current employee ID
+
+    }
+
+    void ValidFormSubmitted(EditContext editContext)
+    {
+        //popup menu with success
+        LastSubmitResult = "OnValidSubmit was executed";
+        Backend.Add_Leave_Request(newLeaveRequest);
+    }
+
+    void InvalidFormSubmitted(EditContext editContext)
+    {
+        //popup menu with error
+        LastSubmitResult = "OnInvalidSubmit was executed";
+    }
+}

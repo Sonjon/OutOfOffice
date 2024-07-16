@@ -1,0 +1,74 @@
+﻿@page "/EmployeeUpdate"
+@page "/EmployeeUpdate/{EmploiyeeId:int}"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+
+<PageTitle>Update employee</PageTitle>
+
+<EditForm Model=@newPerson OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <InputText @bind-Value=newPerson.Full_Name class="form-control" id="Full Name" />
+    </div>
+    <div class="form-group">
+        <label for="Subdivision">Subdivision</label>
+        <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" />
+    </div>
+    <div class="form-group">
+        <label for="Position">Position</label>
+        <InputText @bind-Value=newPerson.Position class="form-control" id="Position" />
+    </div>
+    <div class="form-group">
+        <label for="Status">Status</label>
+        <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status">
+            @foreach (var value in Enum.GetValues<EmploymentStatus>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Manager">Manager</label>
+        <InputNumber @bind-Value=newPerson.Manager class="form-control" id="Manager" />
+    </div>
+    <div class="form-group">
+        <label for="Vacation">Vacation</label>
+        <InputNumber @bind-Value=newPerson.Vacation class="form-control" id="Vacation" />
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+
+@code {
+    Employee newPerson = new Employee();
+    Employee oldEmplyeeData = new Employee();
+
+    [Parameter] 
+    public int EmploiyeeId { get; set; }
+
+    string LastSubmitResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        oldEmplyeeData = await Backend.GetEmployeeAsync(EmploiyeeId);
+        if(oldEmplyeeData!=null)
+            newPerson.Copy(oldEmplyeeData);
+    }
+
+    void ValidFormSubmitted(EditContext editContext)
+    {
+        Backend.GetEmployeesAsync();
+        LastSubmitResult = "OnValidSubmit was executed";
+        if (oldEmplyeeData != null)
+            Backend.Update_Employee(oldEmplyeeData.ID, newPerson, oldEmplyeeData);
+        else
+            Backend.Add_Employee(newPerson);
+    }
+
+    void InvalidFormSubmitted(EditContext editContext)
+    {
+        LastSubmitResult = "OnInvalidSubmit was executed";
+    }
+}

@@ -1,0 +1,204 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@typeparam TItem
+
+
+<style>
+    th {
+        min-width: fit-content;
+    }
+
+    .header_button {
+        float: right;
+        margin-left: 10px;
+    }
+</style>
+
+<table class="table">
+    <thead>
+        <tr>
+            @foreach (KeyValuePair<string, string> name in header_list)
+            {
+                <th>
+                    @name.Value
+                    <button class="header_button" @onclick="@(() => Sort(@name.Key))"><i class=@sort_icon[@name.Key]></i></button>
+                    <FiltrDropDown FiltrFunction=@Filtr filter_list=@filtr[@name.Key]></FiltrDropDown>
+                    <SearchDropDown SearchFunction=@Search @bind-temp_checkbox=@search_contains[@name.Key] @bind-temp_search=@search[@name.Key]></SearchDropDown>
+                </th>
+            }
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (TItem row in shown_rows)
+        {
+            <tr>
+                @foreach (KeyValuePair<string, string> name in header_list)
+                {
+                    <td>@GetStringValue(name.Key, row)</td>
+                }
+                @if(RowButtons != null)
+                    @RowButtons(row)
+            </tr>
+        }
+    </tbody>
+
+    @foreach (KeyValuePair<string, List<string>> filter_list in all_filtr)
+    {
+        @if (filter_list.Key == "")
+        {
+            @foreach (string filter in filter_list.Value)
+            {
+                <tr>
+                    <td>@filter</td>
+                </tr>
+            }
+        }
+
+    }
+
+</table>
+
+@code {
+    [Parameter]
+    public List<TItem> shown_rows
+    {
+        get => _shown_rows;
+        set
+        {
+            if (_shown_rows == value) return;
+
+            _shown_rows = value;
+            temp_shown_rows.InvokeAsync(value);
+        }
+    }
+    public List<TItem> _shown_rows = new List<TItem>();
+
+    [Parameter]
+    public EventCallback<List<TItem>> temp_shown_rows { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> RowButtons { get; set; } 
+
+    //const variables
+    const string default_sort = "fa fa-sort";
+    const string asc_sort = "fa fa-sort-asc";
+    const string desc_sort = "fa fa-sort-desc";
+
+    //help variables
+    bool asc = true;
+    string SortColumn = "";
+    List<TItem> all_rows = new List<TItem>();
+    Dictionary<string, string> sort_icon = new Dictionary<string, string>();
+    Dictionary<string, List<checkboxOption>> filtr = new Dictionary<string, List<checkboxOption>>();
+    Dictionary<string, List<string>> all_filtr = new Dictionary<string, List<string>>();
+    Dictionary<string, string> header_list = new Dictionary<string, string>();
+    Dictionary<string, string> search = new Dictionary<string, string>();
+    Dictionary<string, bool> search_contains = new Dictionary<string, bool>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        header_list = await Helper.getFieldsDisplayNames(typeof(TItem));
+        all_rows = shown_rows.GetRange(0, shown_rows.Count);
+        var listOfFieldNames = typeof(TItem).GetProperties().Select(f => f.Name).ToList();
+        foreach (string field in listOfFieldNames)
+        {
+            sort_icon.TryAdd(field, default_sort);
+            search_contains.TryAdd(field, false);
+            search.TryAdd(field, "");
+            all_filtr.TryAdd(field, new List<string>());
+            filtr.TryAdd(field, new List<checkboxOption>());
+            foreach (TItem leaveRequest in all_rows)
+            {
+                System.Reflection.PropertyInfo prop = typeof(TItem).GetProperty(field);
+                var var_value = prop.GetValue(leaveRequest, null);
+                if (var_value != null)
+                {
+                    string value = var_value.ToString();
+
+                    if (!all_filtr[field].Contains(value))
+                    {
+                        all_filtr[field].Add(value);
+                        filtr[field].Add(new checkboxOption(value, true));
+                    }
+                }
+            }
+        }
+    }
+
+
+    protected void Search()
+    {
+        shown_rows = all_rows.GetRange(0, all_rows.Count);
+        foreach (KeyValuePair<string, string> entry in search)
+        {
+            if (search[entry.Key] != "")
+            {
+                System.Reflection.PropertyInfo prop = typeof(TItem).GetProperty(entry.Key);
+                if (search_contains[entry.Key])
+                    shown_rows = shown_rows.Where(x => prop.GetValue(x, null).ToString().Contains(entry.Value.ToString())).ToList();
+                else
+                    shown_rows = shown_rows.Where(x => prop.GetValue(x, null).ToString().Equals(entry.Value.ToString())).ToList();
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    protected void Filtr()
+    {
+        foreach (KeyValuePair<string, List<checkboxOption>> entry in filtr)
+        {
+            List<string> active_filtr = new List<string>();
+            System.Reflection.PropertyInfo prop = typeof(TItem).GetProperty(entry.Key);
+            foreach (checkboxOption test in entry.Value)
+            {
+                if (test.Value == true)
+                    active_filtr.Add(test.Text);
+            }
+
+            shown_rows = shown_rows.Where(x => active_filtr.Contains(prop.GetValue(x, null).ToString())).ToList();
+            int i = 0;
+        }
+    }
+
+    protected void Sort(string name)
+    {
+        var test = typeof(TItem).GetProperty(name);
+        System.Reflection.PropertyInfo prop = typeof(TItem).GetProperty(name);
+        if (SortColumn != name)
+        {
+            if (SortColumn != null)
+                sort_icon[SortColumn] = default_sort;
+            SortColumn = name;
+            asc = true;
+        }
+        if (asc)
+        {
+            shown_rows = shown_rows.OrderBy(x => prop.GetValue(x, null)).ToList();
+            asc = false;
+            sort_icon[name] = asc_sort;
+        }
+        else
+        {
+            shown_rows = shown_rows.OrderByDescending(x => prop.GetValue(x, null)).ToList();
+            asc = true;
+            sort_icon[name] = desc_sort;
+        }
+        StateHasChanged();
+    }
+
+    public string GetStringValue(string name, TItem item)
+    {
+        Type type = item.GetType();
+        System.Reflection.PropertyInfo prop = type.GetProperty(name);
+        var fieldValue = prop.GetValue(item, null).ToString();
+
+        string value = (string)Convert.ChangeType(fieldValue, typeof(string));
+        return value;
+    }
+}

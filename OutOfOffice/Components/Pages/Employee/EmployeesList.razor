@@ -1,0 +1,50 @@
+﻿@page "/EmployeesList"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<PageTitle>Employees List</PageTitle>
+<button @onclick="@(() => AddEmployee())">Add Employee</button>
+<CustomTableComponent TItem="Employee" shown_rows=@employees>
+    <RowButtons>
+        <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
+        <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+    </RowButtons>
+</CustomTableComponent>
+
+@code {
+    List<Employee> employees = new List<Employee>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await Backend.GetEmployeesAsync();
+    }
+
+    protected void Update(int id)
+    {
+        navigationManager.NavigateTo($"/EmployeeUpdate/{id}");
+    }
+
+    protected async void Deactivate(int employee_id)
+    {
+
+        Employee employee = employees.Where(employee => employee.ID == employee_id).Single();
+        Employee employeeUpdated = new Employee();
+        employeeUpdated.Copy(employee);
+        employeeUpdated.Deactivate();
+        await Backend.Update_Employee(employee.ID, employeeUpdated, employee);
+        employees = await Backend.GetEmployeesAsync();
+        StateHasChanged();
+    }
+
+    protected void AddEmployee()
+    {
+        navigationManager.NavigateTo($"/EmployeeCreator");
+    }
+}
