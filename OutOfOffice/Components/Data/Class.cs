@@ -25,6 +25,14 @@ namespace OutOfOffice.Components.Data
         Rejected
     }
 
+    public enum EmployeePositions
+    {
+        Employee,
+        HR_Manager,
+        Project_Manager,
+        Administrator
+    }
+
     //Approve/Reject/New
 
     public class TableRowsBaseClass

@@ -19,7 +19,12 @@
     </div>
     <div class="form-group">
         <label for="Position">Position</label>
-        <InputText @bind-Value=newPerson.Position class="form-control" id="Position" />
+        <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position">
+            @foreach (var value in Enum.GetValues<EmployeePositions>())
+            {
+                <option value="@value">@value.ToString().Replace("_"," ")</option>
+            }
+        </InputSelect>
     </div>
     <div class="form-group">
         <label for="Status">Status</label>
