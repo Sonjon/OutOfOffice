@@ -49,10 +49,13 @@
     </div>
     <input type="submit" class="btn btn-primary" value="Save" />
 </EditForm>
+<ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding employee ended with sucess" Failuer_message="Something went wrong when adding employee"></ResultMessage>
 
 @code {
     Employee newPerson = new Employee();
     List<Employee> managers = new List<Employee>();
+    bool show_alert = false;
+    bool sucess = false;
 
     string LastSubmitResult;
 
@@ -62,16 +65,20 @@
         managers = await Backend.GetEmployeesAsync();
     }
 
-    void ValidFormSubmitted(EditContext editContext)
+    async void ValidFormSubmitted(EditContext editContext)
     {
         //popup menu with success
         LastSubmitResult = "OnValidSubmit was executed";
-        Backend.Add_Employee(newPerson);
+        bool result = await Backend.Add_Employee(newPerson);
+        show_alert = true;
+        sucess = result;
     }
 
     void InvalidFormSubmitted(EditContext editContext)
     {
         //popup menu with error
         LastSubmitResult = "OnInvalidSubmit was executed";
+        show_alert = true;
+        sucess = false;
     }
 }

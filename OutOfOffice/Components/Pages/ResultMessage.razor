@@ -1,0 +1,28 @@
+﻿@if (show_alert)
+{
+    <div>
+    @if (sucess)
+    {
+        <Alert class="alert alert-success" style="position:absolute"> @Sucess_message</Alert>
+    }
+    else
+    {
+        <Alert class="alert alert-danger" style="position:absolute"> @Failuer_message </Alert>
+    }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public bool show_alert { get; set; }
+
+    [Parameter]
+    public bool sucess { get; set; }
+
+    [Parameter]
+    public string Sucess_message { get; set; } = "Sucess";
+
+    [Parameter]
+    public string Failuer_message { get; set; } = "Failure";
+}
