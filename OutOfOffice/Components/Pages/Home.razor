@@ -1,7 +1,18 @@
 ﻿@page "/"
 
+
 <PageTitle>Home</PageTitle>
 
-<h1>Out of Office</h1>
-
-Welcome to Out of Office.
+<div>
+    <CascadingAuthenticationState>
+       <AuthorizeView>
+        <Authorized>
+            <h1>Out of Office</h1>
+            Welcome to Out of Office.
+        </Authorized>
+        <NotAuthorized>
+            <LoginArea/>
+        </NotAuthorized>
+    </AuthorizeView>
+    </CascadingAuthenticationState>
+</div>

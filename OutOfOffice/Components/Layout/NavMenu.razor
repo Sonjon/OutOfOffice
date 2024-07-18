@@ -1,10 +1,15 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using OutOfOffice.Components.Common;
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
+
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">OutOfOffice</a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
@@ -13,44 +18,72 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" @onclick="()=>expandListsNav = !expandListsNav">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Lists
-            </NavLink>
-        </div>
-        @if (expandListsNav)
-        {
-            <div class="nav-item px-4">
-                <NavLink class="nav-link" href="EmployeesList">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Employees
+            <CascadingAuthenticationState>
+       <AuthorizeView>
+        <Authorized>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" @onclick="async() =>await AuthenticationStateProvider.LogOut()">
+                    <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span> Logout
                 </NavLink>
             </div>
-
-            <div class="nav-item px-4">
-                <NavLink class="nav-link" href="LeaveRequestList">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Leave Requests
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" @onclick="()=>expandListsNav = !expandListsNav">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Lists
                 </NavLink>
             </div>
+            @if (expandListsNav)
+                    {
+                        <AuthorizeView Roles="HR_MANAGER">
+                            <Authorized Context="innerContext">
+                                <div class="nav-item px-4">
+                                    <NavLink class="nav-link" href="EmployeesList">
+                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Employees
+                                    </NavLink>
+                                </div>
+                            </Authorized>
+                        </AuthorizeView>
 
-            <div class="nav-item px-4">
-                <NavLink class="nav-link" href="EmployeeCreator">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Employee
-                </NavLink>
-            </div>
+                        <AuthorizeView Roles="ADMINISTRATOR">
+                            <Authorized Context="innerContext">
+                                <div class="nav-item px-4">
+                                    <NavLink class="nav-link" href="LeaveRequestList">
+                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Leave Requests
+                                    </NavLink>
+                                </div>
 
-            <div class="nav-item px-4">
-                <NavLink class="nav-link" href="EmployeeUpdate">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Update Employee
-                </NavLink>
-            </div>
+                                <div class="nav-item px-4">
+                                    <NavLink class="nav-link" href="EmployeeCreator">
+                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Employee
+                                    </NavLink>
+                                </div>
 
-            <div class="nav-item px-4">
-                <NavLink class="nav-link" href="LeaveRequestCreator">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Leave Requests
-                </NavLink>
-            </div>
-        }
+                                <div class="nav-item px-4">
+                                    <NavLink class="nav-link" href="EmployeeUpdate">
+                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Update Employee
+                                    </NavLink>
+                                </div>
+
+                            </Authorized>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="EMPLOYEE">
+                            <Authorized Context="innerContext">
+                                <div class="nav-item px-4">
+                                    <NavLink class="nav-link" href="LeaveRequestCreator">
+                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Leave Requests
+                                    </NavLink>
+                                </div>
+                            </Authorized>
+                        </AuthorizeView>
+                }
+                <!--
+                                    {
+                    public const string EMPLOYEE = "EMPLOYEE";
+                    public const string HR_MANAGER = "HR_MANAGER";
+                    public const string PROJECT_MANAGER = "PROJECT_MANAGER";
+                -->
+                </Authorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
     </nav>
 </div>
 

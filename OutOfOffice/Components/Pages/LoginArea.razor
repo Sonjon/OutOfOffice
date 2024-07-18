@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.Extensions.Logging
+
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using System.Security.Claims;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
+
+
+<div>
+    <EditForm EditContext="editContext" OnValidSubmit="Submit" FormName="UserLogin2">
+        <div class="login-area-header">
+            <h3>Welcome! </h3>
+        </div>
+
+        <div class="login-area-content">
+            <div class="login-area-field">
+                <input type="text" @bind-value="loginRequest.UserName" />
+            </div>
+
+            <div class="login-area-field">
+                <input type="password" @bind-value="loginRequest.Password" />
+            </div>
+            
+            <input type="submit" value="Sign in" />
+        </div>
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+    </EditForm>
+</div>
+
+
+@code {
+    LoginRequest loginRequest = new LoginRequest();
+    private EditContext? editContext;
+    private ValidationMessageStore? validationMessageStore;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+
+    public String? ErrorMessage { get; set; }
+
+    protected override void OnInitialized()
+    {
+        loginRequest = new LoginRequest();
+        editContext = new EditContext(loginRequest);
+        validationMessageStore = new(editContext);
+    }
+
+    private async Task Submit()
+    {
+        try
+        {
+            ErrorMessage = string.Empty;
+            Employee userEmployee = await Backend.Login(loginRequest);
+
+            if (userEmployee != null)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, loginRequest.UserName),
+                    new Claim(ClaimTypes.Role, userEmployee.Position)
+                };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+            }
+
+            await AuthenticationStateProvider.LogIn(loginRequest);
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            ErrorMessage = e.Message;
+        }
+
+    }
+}

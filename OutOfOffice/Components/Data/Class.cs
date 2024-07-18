@@ -132,6 +132,47 @@ namespace OutOfOffice.Components.Data
             this.Value = value;
         }
     }
+    public class LoginRequest
+    {
+        [Required]
+        public string UserName { get; set; }
+        [Required]
+        public string Password { get; set; }
+    }
+
+    public class UserAuthData
+    {
+        public readonly struct AuthKeys
+        {
+            public const string USER_NAME = "USER_NAME";
+            public const string ROLE = "ROLE";
+            public const string IS_LOGGED = "IS_LOGGED";
+        }
+
+        public struct Roles
+        {
+            public const string EMPLOYEE = "EMPLOYEE";
+            public const string HR_MANAGER = "HR_MANAGER";
+            public const string PROJECT_MANAGER = "PROJECT_MANAGER";
+            public const string ADMINISTRATOR = "ADMINISTRATOR";
+        }
+
+        public string UserName { get; set; }
+        public string Role { get; set; }
+        public List<Claim> Claims { get; set; }
+
+        public ClaimsPrincipal ToClaimsPrincipal()
+        {
+            ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
+            Claim[] claims = Claims.ToArray();
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "WebAppAuth");
+
+            claimsPrincipal.AddIdentity(identity);
+
+            return claimsPrincipal;
+        }
+
+    }
 
     public class Person
     {
