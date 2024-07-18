@@ -62,7 +62,7 @@
     protected override async Task OnInitializedAsync()
     {
         newPerson.Status = EmploymentStatus.Active;
-        managers = await Backend.GetEmployeesAsync();
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_"," "));
     }
 
     async void ValidFormSubmitted(EditContext editContext)

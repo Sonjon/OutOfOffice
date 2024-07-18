@@ -73,10 +73,10 @@
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
-            }
 
-            await AuthenticationStateProvider.LogIn(loginRequest);
-            StateHasChanged();
+                await AuthenticationStateProvider.LogIn(loginRequest);
+                StateHasChanged();
+            }
         }
         catch (Exception e)
         {

@@ -69,7 +69,7 @@ namespace OutOfOffice.Components.Data
         [DisplayName("People Partner")]
         public string Manager_String { get; set; }
 
-        [DisplayName("Out -of-Office Balance")]
+        [DisplayName("Out-of-Office Balance")]
         public int Vacation { get; set; }
 
         public void Copy(Employee employee)
