@@ -1,0 +1,51 @@
+﻿@page "/ProjectList"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<PageTitle>Employees List</PageTitle>
+<button @onclick="@(() => AddProject())">Add Project</button>
+<CustomTableComponent TItem="Project" shown_rows=@projects>
+    <RowButtons>
+        <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
+        <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+    </RowButtons>
+</CustomTableComponent>
+
+@code {
+    List<Project> projects = new List<Project>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        projects = await Backend.GetProjectsAsync();
+
+    }
+
+    protected void Update(int id)
+    {
+        navigationManager.NavigateTo($"/ProjectUpdate/{id}");
+    }
+
+    protected async void Deactivate(int project_id)
+    {
+
+        Project project = projects.Where(project => project.ID == project_id).Single();
+        Project projectUpdated = new Project();
+        projectUpdated.Copy(project);
+        projectUpdated.Deactivate();
+        await Backend.Update_Project(project.ID, projectUpdated, project);
+        projects = await Backend.GetProjectsAsync();
+        StateHasChanged();
+    }
+
+    protected void AddProject()
+    {
+        navigationManager.NavigateTo($"/ProjectCreator");
+    }
+}

@@ -1,0 +1,126 @@
+﻿@page "/ProjectUpdate/{ProjectId:int}"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Update project</PageTitle>
+
+<EditForm Model=@newProject OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Project_Type">Project Type</label>
+        <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type" disabled=@disabled["Project_Type"]>
+            <option value=0></option>
+            @foreach (var value in Enum.GetValues<ProjectType>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Start_Date">Start Date</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start_Date"] />
+    </div>
+    <div class="form-group">
+        <label for="End_Date">End Date</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.End_Date class="form-control" id="End_Date" disabled=@disabled["End_Date"] />
+    </div>
+    <div class="form-group">
+        <label for="Status">Status</label>
+        <InputSelect @bind-Value=newProject.Status class="form-select" id="Status" disabled=@disabled["Status"]>
+            @foreach (var value in Enum.GetValues<ActiveStatus>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Manager">Manager</label>
+        <select @bind=newProject.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
+            <option value=0></option>
+            @foreach (Employee manager in managers)
+            {
+                <option value=@manager.ID>@manager.Full_Name</option>
+            }
+        </select>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+<ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
+
+@code {
+    Project newProject = new Project();
+    Project oldProjectData = new Project();
+    List<Employee> managers = new List<Employee>();
+    Dictionary<string, bool> disabled = new Dictionary<string, bool>();
+    bool show_alert = false;
+    bool sucess = false;
+
+    [Parameter] 
+    public int ProjectId { get; set; }
+
+    string LastSubmitResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        oldProjectData = await Backend.GetProjectAsync(ProjectId);
+        if(oldProjectData!=null)
+            newProject.Copy(oldProjectData);
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
+        await CreateDisabled();
+        StateHasChanged();
+    }
+
+    async void ValidFormSubmitted(EditContext editContext)
+    {
+        Backend.GetEmployeesAsync();
+        bool result = false;
+        if (oldProjectData != null)
+            result = await Backend.Update_Project(oldProjectData.ID, newProject, oldProjectData);
+        else
+            result = await Backend.Add_Project(newProject);
+        show_alert = true;
+        sucess = result;
+    }
+
+    void InvalidFormSubmitted(EditContext editContext)
+    {
+        show_alert = true;
+        sucess = false;
+    }
+
+    async Task CreateDisabled()
+    {
+
+        disabled.Add("Project_Type", false);
+        disabled.Add("Start_Date", false);
+        disabled.Add("End_Date", false);
+        disabled.Add("Status", false);
+        disabled.Add("Manager", false);
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                disabled["Project_Type"] = true;
+                disabled["Start_Date"] = true;
+                disabled["End_Date"] = true;
+                disabled["Status"] = true;
+                disabled["Manager"] = true;
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                disabled["Project_Type"] = true;
+                disabled["Start_Date"] = true;
+                disabled["End_Date"] = true;
+                disabled["Status"] = true;
+                disabled["Manager"] = true;
+                break;
+        }
+    }
+}

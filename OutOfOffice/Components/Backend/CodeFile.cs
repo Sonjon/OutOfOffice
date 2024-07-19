@@ -259,9 +259,145 @@ namespace OutOfOffice.Components.Backend
             return employee;
         }
 
+        public static async Task<List<Project>> GetProjectsAsync()
+        {
+            List<Project> projects = new List<Project>();
+            String str = CreateGetProjectsCommand();
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    Project project = new Project();
+                    project.ID = (int)(long)row["ID"];
+                    project.Project_Type = row["Project Type"].ToString();
+                    project.Start_Date = (DateTime)row["Start Date"];
+                    project.End_Date = (DateTime)row["End Date"];
+                    project.Manager = (row["Project Manager"] == DBNull.Value) ? null : (int)(long)row["Project Manager"];
+                    project.Manager_String = row["Manager"].ToString();
+                    project.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                    projects.Add(project);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return projects;
+        }
+
+        public static async Task<Project> GetProjectAsync(int id)
+        {
+            String str = CreateGetProjectsCommand() + " where pr.ID=" + id;
+
+            Project project = new Project();
+
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);            
+            if (rows.Count == 0)
+                return null;
+            try
+            {
+                Dictionary<string, object> row = rows[0];
+                project.ID = (int)(long)row["ID"];
+                project.Project_Type = row["Project Type"].ToString();
+                project.Start_Date = (DateTime)row["Start Date"];
+                project.End_Date = (DateTime)row["End Date"];
+                project.Manager = (row["Project Manager"] == DBNull.Value) ? null : (int)(long)row["Project Manager"];
+                project.Manager_String = row["Manager"].ToString();
+                project.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+            }
+            catch
+            {
+                // write to log about error data
+            }
+            return project;
+        }
+
+
+        public static async Task<bool> Add_Project(Project newproject)
+        {
+            String str = "insert into Project ([Project Type], [Start Date], [End Date], [Project Manager], [Comment], [Status])";
+            str += " values('" + newproject.Project_Type + "','" + newproject.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','" + newproject.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','";
+            str += newproject.Manager + "','" + newproject.Comment + "','" + newproject.Status + "')";
+            return sendInputSQLCommand(str);
+        }
+
+
+        public static async Task<bool> Update_Project(int id, Project newProjectData, Project oldProjectData)
+        {
+            bool coma = false;
+            String str = "update Project set ";
+            if (newProjectData.Project_Type != oldProjectData.Project_Type)
+            {
+                str += "[Project Type] = '" + newProjectData.Project_Type + "'";
+                coma = true;
+            }
+
+            if (newProjectData.Start_Date != oldProjectData.Start_Date)
+            {
+                if (coma)
+                {
+                    str += ", ";
+                }
+                str += "[Start Date] = '" + newProjectData.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "'";
+                coma = true;
+            }
+            if (newProjectData.End_Date != oldProjectData.End_Date)
+            {
+                if (coma)
+                {
+                    str += ", ";
+                }
+                str += "[End Date] = '" + newProjectData.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "'";
+                coma = true;
+            }
+            if (newProjectData.Status != oldProjectData.Status)
+            {
+                if (coma)
+                {
+                    str += ", ";
+                }
+                str += "[Status] = '" + newProjectData.Status + "'";
+                coma = true;
+            }
+            if (newProjectData.Manager != oldProjectData.Manager)
+            {
+                if (coma)
+                {
+                    str += ", ";
+                }
+                str += "[Project Manager] = " + newProjectData.Manager;
+                coma = true;
+            }
+            if (newProjectData.Comment != oldProjectData.Comment)
+            {
+                if (coma)
+                {
+                    str += ", ";
+                }
+                str += "[Comment] = " + newProjectData.Comment;
+            }
+            str += " WHERE ID = " + id;
+            return sendInputSQLCommand(str);
+        }
         public static string CreateGetEmployeesCommand()
         {
             return "Select emp.*, Manager.[Full Name] as Manager from Employee as emp left join Employee as Manager on emp.[People Partner] = Manager.ID";
+        }
+
+        public static string CreateGetProjectsCommand()
+        {
+            return "Select pr.*, Manager.[Full Name] as Manager from Project as pr left join Employee as Manager on pr.[Project Manager] = Manager.ID";
+        }
+        public static string CreateGetManagerProjectsCommand(int i)
+        {
+            return "Select * from Project where [Project Manager]="+i;
+        }
+
+        public static string CreateGetProjectsEmployeesCommand(int i)
+        {
+            return "Select * from Employee where Project=" + i;
         }
 
         public static string CreateGetEmployeeLeaveRequestCommand(int employeeId)

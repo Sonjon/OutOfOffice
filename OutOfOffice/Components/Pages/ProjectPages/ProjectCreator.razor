@@ -1,0 +1,78 @@
+﻿@page "/ProjectCreator"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+
+<PageTitle>Add new employee</PageTitle>
+
+<EditForm Model=@newProject OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Project_Type">Project Type</label>
+        <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type">
+            <option value=0></option>
+            @foreach (var value in Enum.GetValues<ProjectType>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Start_Date">Start Date</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.Start_Date class="form-control" id="Start_Date" />
+    </div>
+    <div class="form-group">
+        <label for="End_Date">End Date</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.End_Date class="form-control" id="End_Date"/>
+    </div>
+    <div class="form-group">
+        <label for="Status">Status</label>
+        <InputSelect @bind-Value=newProject.Status class="form-select" id="Status">
+            @foreach (var value in Enum.GetValues<ActiveStatus>())
+            {
+                <option value="@value">@value.ToString().Replace("_"," ")</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Manager">Manager</label>
+        <select @bind=newProject.Manager class="form-control" id="Manager">
+            <option value=0></option>
+            @foreach (Employee manager in managers)
+            {
+                <option value=@manager.ID>@manager.Full_Name</option>
+            }
+        </select>
+    </div>
+    <input type="submit" class="btn btn-primary" value="Save" />
+</EditForm>
+<ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
+
+@code {
+    Project newProject = new Project();
+    List<Employee> managers = new List<Employee>();
+    bool show_alert = false;
+    bool sucess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        newProject.Status = ActiveStatus.Active;
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
+    }
+
+    async void ValidFormSubmitted(EditContext editContext)
+    {
+        //popup menu with success
+        bool result = await Backend.Add_Project(newProject);
+        show_alert = true;
+        sucess = result;
+    }
+
+    void InvalidFormSubmitted(EditContext editContext)
+    {
+        //popup menu with error
+        show_alert = true;
+        sucess = false;
+    }
+}

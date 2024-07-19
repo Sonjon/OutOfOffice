@@ -33,6 +33,13 @@ namespace OutOfOffice.Components.Data
         Administrator
     }
 
+    public enum ProjectType
+    {
+        Frontend,
+        Backend,
+        Services
+    }
+
     //Approve/Reject/New
 
     public class TableRowsBaseClass
@@ -72,6 +79,9 @@ namespace OutOfOffice.Components.Data
         [DisplayName("Out-of-Office Balance")]
         public int Vacation { get; set; }
 
+
+        public int? Project { get; set; }
+
         public void Copy(Employee employee)
         {
             this.ID = employee.ID;
@@ -82,6 +92,7 @@ namespace OutOfOffice.Components.Data
             this.Manager = employee.Manager;
             this.Manager_String = employee.Manager_String;
             this.Vacation = employee.Vacation;
+            this.Project = employee.Project;
         }
         
         public async void Deactivate()
@@ -126,6 +137,47 @@ namespace OutOfOffice.Components.Data
         }
     }
 
+    public class Project : TableRowsBaseClass
+    {
+        public int ID;
+        [Required(ErrorMessage = "Please choose project type from list"), DisplayName("Project Type")]
+        public string Project_Type { get; set; }
+
+        [Required, DisplayName("Start Date")]
+        public DateTime Start_Date { get; set; } = DateTime.Now;
+
+        [Required, DisplayName("End Date"), DateGreaterThanAttribute(otherPropertyName = "Start_Date", ErrorMessage = "End date must be greater than start date")]
+        public DateTime End_Date { get; set; } = DateTime.Now;
+
+        public int? Manager { get; set; }
+        [DisplayName("Project Manager")]
+        public string Manager_String { get; set; }
+
+
+        [DisplayName("Comment")]
+        public string Comment { get; set; }
+
+        [Required, DisplayName("Status")]
+        public ActiveStatus Status { get; set; }
+
+        public void Copy(Project employee)
+        {
+            this.ID = employee.ID;
+            this.Project_Type = employee.Project_Type;
+            this.Start_Date = employee.Start_Date;
+            this.End_Date = employee.End_Date;
+            this.Manager = employee.Manager;
+            this.Manager_String = employee.Manager_String;
+            this.Comment = employee.Comment;
+            this.Status = employee.Status;
+        }
+
+
+        public async void Deactivate()
+        {
+            this.Status = ActiveStatus.Inactive;
+        }
+    }
 
     public class checkboxOption
     {
