@@ -210,6 +210,7 @@ namespace OutOfOffice.Components.Data
             public const string USER_NAME = "USER_NAME";
             public const string ROLE = "ROLE";
             public const string IS_LOGGED = "IS_LOGGED";
+            public const string EMPLOYEE_ID = "EMPLOYEE_ID";
         }
 
         public struct Roles
@@ -221,6 +222,7 @@ namespace OutOfOffice.Components.Data
         }
 
         public string UserName { get; set; }
+        public int EmployeeId { get; set; }
         public string Role { get; set; }
         public List<Claim> Claims { get; set; }
 

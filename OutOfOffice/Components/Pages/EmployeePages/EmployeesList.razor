@@ -12,8 +12,12 @@
 <button @onclick="@(() => AddEmployee())">Add Employee</button>
 <CustomTableComponent TItem="Employee" shown_rows=@employees>
     <RowButtons>
-        <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
-        <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+        <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
+        <AuthorizeView Roles="HR_MANAGER">
+            <Authorized Context="Context">
+                <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+            </Authorized>
+        </AuthorizeView>
     </RowButtons>
 </CustomTableComponent>
 

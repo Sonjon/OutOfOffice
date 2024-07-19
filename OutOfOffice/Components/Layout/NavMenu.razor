@@ -33,7 +33,7 @@
             </div>
             @if (expandListsNav)
                     {
-                        <AuthorizeView Roles="HR_MANAGER">
+                        <AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER">
                             <Authorized Context="innerContext">
                                 <div class="nav-item px-4">
                                     <NavLink class="nav-link" href="EmployeesList">
@@ -42,14 +42,14 @@
                                 </div>
                             </Authorized>
                         </AuthorizeView>
-
+                        <div class="nav-item px-4">
+                            <NavLink class="nav-link" href="LeaveRequestList">
+                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Leave Requests
+                            </NavLink>
+                        </div>
                         <AuthorizeView Roles="ADMINISTRATOR">
                             <Authorized Context="innerContext">
-                                <div class="nav-item px-4">
-                                    <NavLink class="nav-link" href="LeaveRequestList">
-                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Leave Requests
-                                    </NavLink>
-                                </div>
+
 
                                 <div class="nav-item px-4">
                                     <NavLink class="nav-link" href="EmployeeCreator">

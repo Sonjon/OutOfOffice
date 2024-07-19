@@ -21,6 +21,7 @@ namespace OutOfOffice.Components.Common
             await localStorageAccessor.SetValueAsync(UserAuthData.AuthKeys.USER_NAME, authData.UserName);
             await localStorageAccessor.SetValueAsync(UserAuthData.AuthKeys.ROLE, authData.Role);
             await localStorageAccessor.SetValueAsync(UserAuthData.AuthKeys.IS_LOGGED, true);
+            await localStorageAccessor.SetValueAsync(UserAuthData.AuthKeys.EMPLOYEE_ID, authData.EmployeeId);
         }
 
         public async Task ClearAuthData()
@@ -28,6 +29,7 @@ namespace OutOfOffice.Components.Common
             await localStorageAccessor.RemoveAsync(UserAuthData.AuthKeys.USER_NAME);
             await localStorageAccessor.RemoveAsync(UserAuthData.AuthKeys.ROLE);
             await localStorageAccessor.SetValueAsync(UserAuthData.AuthKeys.IS_LOGGED, false);
+            await localStorageAccessor.RemoveAsync(UserAuthData.AuthKeys.EMPLOYEE_ID);
         }
 
 
@@ -93,7 +95,6 @@ namespace OutOfOffice.Components.Common
                     break;
                 case UserAuthData.Roles.HR_MANAGER:
                     roleClaims.Add(new Claim(ClaimTypes.Role, UserAuthData.Roles.EMPLOYEE));
-                    roleClaims.Add(new Claim(ClaimTypes.Role, UserAuthData.Roles.PROJECT_MANAGER));
                     roleClaims.Add(new Claim(ClaimTypes.Role, UserAuthData.Roles.HR_MANAGER));
                     break;
                 case UserAuthData.Roles.PROJECT_MANAGER:
