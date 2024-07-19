@@ -54,20 +54,22 @@ namespace OutOfOffice.Components.Common
 
         public async Task<UserAuthData?> GetAuthDataAsync()
         {
-                string role = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.ROLE);
-                string userName = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.USER_NAME);
+            string role = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.ROLE);
+            string userName = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.USER_NAME);
 
-                if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(role))
-                {
-                    return null;
-                }
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(role))
+            {
+                return null;
+            }
+            string employeeId = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.EMPLOYEE_ID);
 
-                UserAuthData authData = new UserAuthData();
-                authData.UserName = userName;
-                authData.Role = role;
+            UserAuthData authData = new UserAuthData();
+            authData.UserName = userName;
+            authData.EmployeeId = int.Parse(employeeId);
+            authData.Role = role;
 
-                authData.Claims = PrepareClaims(authData);
-                return authData;
+            authData.Claims = PrepareClaims(authData);
+            return authData;
         }
 
         private List<Claim> PrepareClaims(UserAuthData authData)

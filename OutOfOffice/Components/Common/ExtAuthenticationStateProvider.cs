@@ -38,6 +38,7 @@ namespace OutOfOffice.Components.Common
                 UserAuthData authData = new UserAuthData();
                 authData.UserName = loginRequest.UserName;
                 authData.Role = userEmployee.Position.Replace(" ","_").ToUpper();
+                authData.EmployeeId = userEmployee.ID;
 
                 await authStorage.StoreAuthData(authData);
                 await ReloadAuthenticationStateAsync();
@@ -70,9 +71,16 @@ namespace OutOfOffice.Components.Common
 
         public async Task<string> GetRole()
         {
-            bool result = false;
             UserAuthData? authData = await authStorage.GetAuthDataAsync();
             return authData.Role;
+        }
+
+        public async Task<int?> GetYourID()
+        {
+            UserAuthData? authData = await authStorage.GetAuthDataAsync();
+            if (authData != null)
+                return authData.EmployeeId;
+            return null;
         }
     }
 }
