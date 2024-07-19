@@ -406,6 +406,11 @@ namespace OutOfOffice.Components.Backend
             return "Select lr.*, emp.[Full Name] as EmployeeString from [Leave Request] as lr left join Employee as emp on lr.[Employee] = emp.ID";
         }
 
+        public static string CreateGetMyLeaveRequestCommand(int id)
+        {
+            return CreateGetLeaveRequestCommand() + "where emp.ID = " + id;
+        }
+
         public static async Task<List<LeaveRequest>> GetLeaveRequestsAsync()
         {
             List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
@@ -431,6 +436,40 @@ namespace OutOfOffice.Components.Backend
                         // write to log about error data
                     }
                     leaveRequests.Add(leaveRequest);
+            }
+
+            return leaveRequests;
+
+        }
+
+        public static async Task<List<LeaveRequest>> GetMyLeaveRequestsAsync(int id)
+        {
+
+            List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+            if (id == null)
+                return leaveRequests;
+            String str = CreateGetMyLeaveRequestCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(LeaveRequest));
+            foreach (Dictionary<string, object> row in rows)
+            {
+                LeaveRequest leaveRequest = new LeaveRequest();
+                try
+                {
+                    leaveRequest.ID = (int)(long)row["ID"];
+                    leaveRequest.EmployeeId = (int)(long)row["Employee"];
+                    leaveRequest.Employee = row["EmployeeString"].ToString();
+                    leaveRequest.Absence_Reason = row["Absence Reason"].ToString();
+                    leaveRequest.Start_Date = (DateTime)row["Start Date"];
+                    leaveRequest.End_Date = (DateTime)row["End Date"];
+                    leaveRequest.Comment = row["Comment"].ToString();
+                    leaveRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+                leaveRequests.Add(leaveRequest);
             }
 
             return leaveRequests;
@@ -471,14 +510,14 @@ namespace OutOfOffice.Components.Backend
         public static async Task<LeaveRequest> GetLeaveRequestAsync(int id)
         {
 
-            String str = CreateGetLeaveRequestCommand() + " where emp.ID=" + id;
+            String str = CreateGetLeaveRequestCommand() + " where lr.ID=" + id;
 
             LeaveRequest leaveRequest = new LeaveRequest();
 
-            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
-            Dictionary<string, object> row = rows[0];
-            if (row.Count == 0)
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);           
+            if (rows.Count == 0)
                 return null;
+            Dictionary<string, object> row = rows[0];
             try
             {
                 leaveRequest.ID = (int)(long)row["ID"];

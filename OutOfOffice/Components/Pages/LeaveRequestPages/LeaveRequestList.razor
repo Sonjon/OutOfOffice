@@ -4,6 +4,7 @@
 @using Backend;
 @using OutOfOffice.Components.Common;
 
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -13,6 +14,7 @@
 <button @onclick="@(() => AddLeaveRequest())">Add LeaveRequest</button>
 <CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
     <RowButtons>
+        <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
         <td><button @onclick="@(() => Submit(context.ID))">Submit</button></td>
         <td><button @onclick="@(() => Cancel(context.ID))">Cancel</button></td>
     </RowButtons>
@@ -20,11 +22,18 @@
 
 @code {
     List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+    int? my_id;
 
 
     protected override async Task OnInitializedAsync()
     {
         leaveRequests = await Backend.GetLeaveRequestsAsync();
+        my_id = await AuthenticationStateProvider.GetYourID();
+    }
+
+    protected void Update(int id)
+    {
+        navigationManager.NavigateTo($"/LeaveRequestUpdate/{id}");
     }
 
     protected async void Submit(int leaveRequest_id)
@@ -36,7 +45,8 @@
             leaveRequestUpdated.Copy(leaveRequest);
             leaveRequestUpdated.Status = LeaveRequestStatus.Submitted;
             await Backend.Update_LeaveRequest(leaveRequest.ID, leaveRequestUpdated, leaveRequest);
-            leaveRequests = await Backend.GetLeaveRequestsAsync();
+            if(my_id != null)
+                leaveRequests = await Backend.GetMyLeaveRequestsAsync((int)my_id);
             StateHasChanged();
         }
     }

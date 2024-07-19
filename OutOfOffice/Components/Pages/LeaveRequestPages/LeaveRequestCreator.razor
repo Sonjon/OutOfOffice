@@ -3,6 +3,7 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Submit Leave Request</PageTitle>
 
@@ -35,18 +36,14 @@
     bool show_alert = false;
     bool sucess = false;
 
-    string LastSubmitResult;
-
     protected override async Task OnInitializedAsync()
     {
         newLeaveRequest.Status = LeaveRequestStatus.New;
-        newLeaveRequest.EmployeeId = 7; //add current employee ID
+        newLeaveRequest.EmployeeId = await AuthenticationStateProvider.GetYourID();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        //popup menu with success
-        LastSubmitResult = "OnValidSubmit was executed";
         bool result = await Backend.Add_Leave_Request(newLeaveRequest);
         show_alert = true;
         sucess = result;
@@ -54,8 +51,6 @@
 
     void InvalidFormSubmitted(EditContext editContext)
     {
-        //popup menu with error
-        LastSubmitResult = "OnInvalidSubmit was executed";
         show_alert = true;
         sucess = false;
     }
