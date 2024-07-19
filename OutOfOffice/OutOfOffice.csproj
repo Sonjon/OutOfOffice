@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Pages\ProjectPages\" />
     <Folder Include="Components\scripts\" />
   </ItemGroup>
 

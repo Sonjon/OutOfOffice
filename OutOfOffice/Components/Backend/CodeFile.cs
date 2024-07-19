@@ -180,11 +180,10 @@ namespace OutOfOffice.Components.Backend
                     employee.Full_Name = row["Full Name"].ToString();
                     employee.Subdivision = row["Subdivision"].ToString();
                     employee.Position = row["Position"].ToString();
-                    employee.Status = Helper.ParseEnum<EmploymentStatus>(row["Status"].ToString());
+                    employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
                     employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
                     employee.Manager_String = row["Manager"].ToString();
                     employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
-                    //employee.Project_String = row["Project_Name"].ToString();
                     employee.Vacation = (int)row["Out-of-Office Balance"];
                     employees.Add(employee);
                 }
@@ -211,12 +210,11 @@ namespace OutOfOffice.Components.Backend
                     employee.Full_Name = row["Full Name"].ToString();
                     employee.Subdivision = row["Subdivision"].ToString();
                     employee.Position = row["Position"].ToString();
-                    employee.Status = Helper.ParseEnum<EmploymentStatus>(row["Status"].ToString());
+                    employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
                     employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
                     employee.Manager_String = row["Manager"].ToString();
                     employee.Vacation = (int)row["Out-of-Office Balance"];
                     employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
-                    //employee.Project_String = row["Project_Name"].ToString();
                     employees.Add(employee);
                 }
                 catch
@@ -227,7 +225,6 @@ namespace OutOfOffice.Components.Backend
 
             return employees;
         }
-
 
         public static async Task<Employee> GetEmployeeAsync(int id)
         {
@@ -245,12 +242,11 @@ namespace OutOfOffice.Components.Backend
                 employee.Full_Name = row["Full Name"].ToString();
                 employee.Subdivision = row["Subdivision"].ToString();
                 employee.Position = row["Position"].ToString();
-                employee.Status = Helper.ParseEnum<EmploymentStatus>(row["Status"].ToString());
+                employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
                 employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
                 employee.Manager_String = row["Manager"].ToString();
                 employee.Vacation = (int)row["Out-of-Office Balance"];
                 employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
-                //employee.Project_String = row["Project_Name"].ToString();
             }
             catch
             {
@@ -601,12 +597,11 @@ namespace OutOfOffice.Components.Backend
                 employee.Full_Name = row["Full Name"].ToString();
                 employee.Subdivision = row["Subdivision"].ToString();
                 employee.Position = row["Position"].ToString();
-                employee.Status = Helper.ParseEnum<EmploymentStatus>(row["Status"].ToString());
+                employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
                 employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
                 employee.Manager_String = row["Manager"].ToString();
                 employee.Vacation = (int)row["Out-of-Office Balance"];
                 employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
-                //employee.Project_String = row["Project_Name"].ToString();
             }
             catch
             {

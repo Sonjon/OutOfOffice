@@ -196,7 +196,7 @@
     {
         Type type = item.GetType();
         System.Reflection.PropertyInfo prop = type.GetProperty(name);
-        var fieldValue = prop.GetValue(item, null).ToString();
+        var fieldValue = prop.GetValue(item, null)!=null ? prop.GetValue(item, null).ToString() : "";
 
         string value = (string)Convert.ChangeType(fieldValue, typeof(string));
         return value;

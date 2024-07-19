@@ -28,8 +28,10 @@
     <div class="form-group">
         <label for="Status">Status</label>
         <InputSelect @bind-Value=newPerson.Status class="form-select" id="Status">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            @foreach (var value in Enum.GetValues<ActiveStatus>())
+            {
+                <option value="@value">@value</option>
+            }
         </InputSelect>
     </div>
     <div class="form-group">
@@ -40,7 +42,6 @@
             {
                 <option value=@manager.ID>@manager.Full_Name</option>
             }
-
         </select>
     </div>
     <div class="form-group">
@@ -61,13 +62,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        newPerson.Status = EmploymentStatus.Active;
+        newPerson.Status = ActiveStatus.Active;
         managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_"," "));
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        //popup menu with success
         LastSubmitResult = "OnValidSubmit was executed";
         bool result = await Backend.Add_Employee(newPerson);
         show_alert = true;
@@ -76,7 +76,6 @@
 
     void InvalidFormSubmitted(EditContext editContext)
     {
-        //popup menu with error
         LastSubmitResult = "OnInvalidSubmit was executed";
         show_alert = true;
         sucess = false;
