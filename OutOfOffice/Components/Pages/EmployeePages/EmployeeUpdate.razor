@@ -3,6 +3,9 @@
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
+@using Common;
+
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Update employee</PageTitle>
 
@@ -11,25 +14,25 @@
     <ValidationSummary />
     <div class="form-group">
         <label for="Name">Name</label>
-        <InputText @bind-Value=newPerson.Full_Name class="form-control" id="Full Name" />
+        <InputText @bind-Value=newPerson.Full_Name class="form-control" id="Full Name" disabled=@disabled["Full Name"]/>
     </div>
     <div class="form-group">
         <label for="Subdivision">Subdivision</label>
-        <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" />
+        <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" disabled=@disabled["Subdivision"]/>
     </div>
     <div class="form-group">
         <label for="Position">Position</label>
-        <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position">
+        <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position" disabled=@disabled["Position"]>
             @foreach (var value in Enum.GetValues<EmployeePositions>())
             {
-                <option value="@value">@value.ToString().Replace("_"," ")</option>
+                <option value="@value">@value.ToString().Replace("_", " ")</option>
             }
         </InputSelect>
     </div>
     <div class="form-group">
         <label for="Status">Status</label>
-        <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status">
-            @foreach (var value in Enum.GetValues<EmploymentStatus>())
+        <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status" disabled=@disabled["Status"]>
+            @foreach (var value in Enum.GetValues<ActiveStatus>())
             {
                 <option value="@value">@value</option>
             }
@@ -37,11 +40,17 @@
     </div>
     <div class="form-group">
         <label for="Manager">Manager</label>
-        <InputNumber @bind-Value=newPerson.Manager class="form-control" id="Manager" />
+        <select @bind=newPerson.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
+            <option value=0></option>
+            @foreach (Employee manager in managers)
+            {
+                <option value=@manager.ID>@manager.Full_Name</option>
+            }
+        </select>
     </div>
     <div class="form-group">
         <label for="Vacation">Vacation</label>
-        <InputNumber @bind-Value=newPerson.Vacation class="form-control" id="Vacation" />
+        <InputNumber @bind-Value=newPerson.Vacation class="form-control" id="Vacation" disabled=@disabled["Vacation"]/>
     </div>
     <input type="submit" class="btn btn-primary" value="Save" />
 </EditForm>
@@ -50,8 +59,11 @@
 @code {
     Employee newPerson = new Employee();
     Employee oldEmplyeeData = new Employee();
+    List<Employee> managers = new List<Employee>();
     bool show_alert = false;
     bool sucess = false;
+
+    Dictionary<string, bool> disabled = new Dictionary<string, bool>();
 
     [Parameter] 
     public int EmploiyeeId { get; set; }
@@ -61,8 +73,10 @@
     protected override async Task OnInitializedAsync()
     {
         oldEmplyeeData = await Backend.GetEmployeeAsync(EmploiyeeId);
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
         if(oldEmplyeeData!=null)
             newPerson.Copy(oldEmplyeeData);
+        await CreateDisabled();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
@@ -82,4 +96,39 @@
     {
         LastSubmitResult = "OnInvalidSubmit was executed";
     }
+
+    async Task CreateDisabled()
+    {
+
+        disabled.Add("Full Name", false);
+        disabled.Add("Subdivision", false);
+        disabled.Add("Position", false);
+        disabled.Add("Status", false);
+        disabled.Add("Manager", false);
+        disabled.Add("Vacation", false);
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                disabled["Full Name"] = true;
+                disabled["Subdivision"] = true;
+                disabled["Position"] = true;
+                disabled["Status"] = true;
+                disabled["Manager"] = true;
+                disabled["Vacation"] = true;
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                disabled["Full Name"] = true;
+                disabled["Subdivision"] = true;
+                disabled["Position"] = true;
+                disabled["Status"] = true;
+                disabled["Manager"] = true;
+                disabled["Vacation"] = true;
+                break;
+        }
+    }
+
 }

@@ -5,6 +5,8 @@ using OutOfOffice.Components.Backend;
 using Microsoft.AspNetCore.Authentication.Cookies;
 //using Microsoft.AspNetCore.Identity.Data;
 using System.Net.Http;
+using Microsoft.AspNetCore.Identity;
+using static OutOfOffice.Components.Data.UserAuthData;
 
 namespace OutOfOffice.Components.Common
 {
@@ -52,6 +54,25 @@ namespace OutOfOffice.Components.Common
         {
                 AuthenticationState authenticationState = await GetAuthenticationStateAsync();
                 NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
+        }
+    
+        public async Task<bool> IsInRole(string role)
+        {
+            bool result = false;
+            UserAuthData? authData = await authStorage.GetAuthDataAsync();
+            if (authData != null)
+            {
+                if(authData.Role == role)
+                    result = true;
+            }
+            return result;
+        }
+
+        public async Task<string> GetRole()
+        {
+            bool result = false;
+            UserAuthData? authData = await authStorage.GetAuthDataAsync();
+            return authData.Role;
         }
     }
 }

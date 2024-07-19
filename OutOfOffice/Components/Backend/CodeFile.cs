@@ -524,7 +524,7 @@ namespace OutOfOffice.Components.Backend
                 {
                     str += ", ";
                 }
-                str += "[Start Date] = '" + newLeaveRequest.Start_Date + "'";
+                str += "[Start Date] = '" + newLeaveRequest.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "'";
                 coma = true;
             }
 
@@ -534,7 +534,7 @@ namespace OutOfOffice.Components.Backend
                 {
                     str += ", ";
                 }
-                str += "[End Date] = '" + newLeaveRequest.End_Date + "'";
+                str += "[End Date] = '" + newLeaveRequest.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "'";
                 coma = true;
             }
 
@@ -574,7 +574,7 @@ namespace OutOfOffice.Components.Backend
         {
             String str = "insert into [Leave Request] ([Employee], [Absence Reason], [Start Date], [End Date], [Comment], [Status]) ";
             str += "values('" + newLeaveRequest.EmployeeId + "','" + newLeaveRequest.Absence_Reason + "','";
-            str += newLeaveRequest.Start_Date + "','" + newLeaveRequest.End_Date + "','"; 
+            str += newLeaveRequest.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','" + newLeaveRequest.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','"; 
             str += newLeaveRequest.Comment + "','" + newLeaveRequest.Status + "')";
 
             return sendInputSQLCommand(str);
