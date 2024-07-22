@@ -226,6 +226,69 @@ namespace OutOfOffice.Components.Backend
             return employees;
         }
 
+        public static async Task<List<Employee>> GetEmployeesAsyncWithHRManager(int id)
+        {
+            List<Employee> employees = new List<Employee>();
+            String str = CreateGetEmployeesWithHRManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(Employee));
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    Employee employee = new Employee();
+                    employee.ID = (int)(long)row["ID"];
+                    employee.Full_Name = row["Full Name"].ToString();
+                    employee.Subdivision = row["Subdivision"].ToString();
+                    employee.Position = row["Position"].ToString();
+                    employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                    employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
+                    employee.Manager_String = row["Manager"].ToString();
+                    employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
+                    employee.Vacation = (int)row["Out-of-Office Balance"];
+                    employees.Add(employee);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return employees;
+        }
+
+        public static async Task<List<Employee>> GetEmployeesAsyncWithProjectManager(int id)
+        {
+            List<Employee> employees = new List<Employee>();
+            String str = CreateGetEmployeesWithProjectManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(Employee));
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    Employee employee = new Employee();
+                    employee.ID = (int)(long)row["ID"];
+                    employee.Full_Name = row["Full Name"].ToString();
+                    employee.Subdivision = row["Subdivision"].ToString();
+                    employee.Position = row["Position"].ToString();
+                    employee.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                    employee.Manager = (row["People Partner"] == DBNull.Value) ? null : (int)(long)row["People Partner"];
+                    employee.Manager_String = row["Manager"].ToString();
+                    employee.Project = (row["Project"] == DBNull.Value) ? null : (int)(long)row["Project"];
+                    employee.Vacation = (int)row["Out-of-Office Balance"];
+                    employees.Add(employee);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return employees;
+        }
+
+
         public static async Task<Employee> GetEmployeeAsync(int id)
         {
             String str = CreateGetEmployeesCommand() + " where emp.ID=" + id;
@@ -310,6 +373,97 @@ namespace OutOfOffice.Components.Backend
             return project;
         }
 
+        public static async Task<List<Project>> GetMyProjectAsync(int id)
+        {
+            String str = CreateGetProjectsByEmployeeCommand(id);
+
+            List<Project> projects = new List<Project>();
+
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            if (rows.Count == 0)
+                return projects;
+            try
+            {
+                Project project = new Project();
+                Dictionary<string, object> row = rows[0];
+                project.ID = (int)(long)row["ID"];
+                project.Project_Type = row["Project Type"].ToString();
+                project.Start_Date = (DateTime)row["Start Date"];
+                project.End_Date = (DateTime)row["End Date"];
+                project.Manager = (row["Project Manager"] == DBNull.Value) ? null : (int)(long)row["Project Manager"];
+                project.Manager_String = row["Manager"].ToString();
+                project.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                projects.Add(project);
+            }
+            catch
+            {
+                // write to log about error data
+            }
+            return projects;
+        }
+
+        public static async Task<List<Project>> GetProjectsByProjectManager(int id)
+        {
+            String str = CreateGetProjectsCommand() + " where pr.[Project Manager]=" + id;
+
+            List<Project> projects = new List<Project>();
+
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            if (rows.Count == 0)
+                return projects;
+            try
+            {
+                foreach (Dictionary<string, object> row in rows)
+                {
+                    Project project = new Project();
+                    project.ID = (int)(long)row["ID"];
+                    project.Project_Type = row["Project Type"].ToString();
+                    project.Start_Date = (DateTime)row["Start Date"];
+                    project.End_Date = (DateTime)row["End Date"];
+                    project.Manager = (row["Project Manager"] == DBNull.Value) ? null : (int)(long)row["Project Manager"];
+                    project.Manager_String = row["Manager"].ToString();
+                    project.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                    projects.Add(project);
+                }
+            }
+            catch
+            {
+                // write to log about error data
+            }
+            return projects;
+        }
+
+
+        public static async Task<List<Project>> GetProjectsByHRManager(int id)
+        {
+            String str = CreateGetProjectsByHRManagerCommand(id);
+
+            List<Project> projects = new List<Project>();
+
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            if (rows.Count == 0)
+                return projects;
+            try
+            {
+                foreach (Dictionary<string, object> row in rows)
+                {
+                    Project project = new Project();
+                    project.ID = (int)(long)row["ID"];
+                    project.Project_Type = row["Project Type"].ToString();
+                    project.Start_Date = (DateTime)row["Start Date"];
+                    project.End_Date = (DateTime)row["End Date"];
+                    project.Manager = (row["Project Manager"] == DBNull.Value) ? null : (int)(long)row["Project Manager"];
+                    project.Manager_String = row["Manager"].ToString();
+                    project.Status = Helper.ParseEnum<ActiveStatus>(row["Status"].ToString());
+                    projects.Add(project);
+                }
+            }
+            catch
+            {
+                // write to log about error data
+            }
+            return projects;
+        }
 
         public static async Task<bool> Add_Project(Project newproject)
         {
@@ -495,9 +649,24 @@ namespace OutOfOffice.Components.Backend
             return "Select emp.*, Manager.[Full Name] as Manager from Employee as emp left join Employee as Manager on emp.[People Partner] = Manager.ID";
         }
 
+        public static string CreateGetEmployeesWithHRManagerCommand(int id)
+        {
+            return "Select emp.*, Manager.[Full Name] as Manager from Employee as emp left join Employee as Manager on emp.[People Partner] = Manager.ID where emp.[People Partner] = " + id;
+        }
+
+        public static string CreateGetEmployeesWithProjectManagerCommand(int id)
+        {
+            return "Select emp.*, Manager.[Full Name] as Manager from Employee as emp left join Employee as Manager on emp.[People Partner] = Manager.ID left join Project as pr on emp.Project = pr.ID where pr.[Project Manager] = " + id;
+        }
+
         public static string CreateGetProjectsCommand()
         {
             return "Select pr.*, Manager.[Full Name] as Manager from Project as pr left join Employee as Manager on pr.[Project Manager] = Manager.ID";
+        }
+
+        public static string CreateGetProjectsByHRManagerCommand(int id)
+        {
+            return "Select pr.*, Manager.[Full Name] as Manager, emp.[Full Name] as employee from Project as pr left join Employee as Manager on pr.[Project Manager] = Manager.ID left join Employee as emp on emp.Project = pr.ID where emp.[People Partner] = " + id;
         }
 
         public static string CreateApprovalRequestCommand()
@@ -530,6 +699,11 @@ namespace OutOfOffice.Components.Backend
             return "Select * from Employee where Project=" + i;
         }
 
+        public static string CreateGetProjectsByEmployeeCommand(int id)
+        {
+            return "Select * from Project as pr left join Employee as emp on emp.Project = pr.ID where emp.ID = " + id;
+        }
+
         public static string CreateGetEmployeeLeaveRequestCommand(int employeeId)
         {
             return "Select lr.*, emp.[Full Name] as EmployeeString from [Leave Request] as lr left join Employee as emp on lr.[Employee] = emp.ID where  lr.[Employee]=" + employeeId;
@@ -538,6 +712,16 @@ namespace OutOfOffice.Components.Backend
         public static string CreateGetLeaveRequestCommand()
         {
             return "Select lr.*, emp.[Full Name] as EmployeeString from [Leave Request] as lr left join Employee as emp on lr.[Employee] = emp.ID";
+        }
+
+        public static string CreateGetLeaveRequestWithProjectManagerCommand(int id)
+        {
+            return "Select lr.*, emp.[Full Name] as EmployeeString from [Leave Request] as lr left join Employee as emp on lr.[Employee] = emp.ID  left join Project as pr on emp.Project = pr.ID where pr.[Project Manager] = " + id;
+        }
+
+        public static string CreateGetLeaveRequestWithHRManagerCommand(int id)
+        {
+            return "Select lr.*, emp.[Full Name] as EmployeeString from [Leave Request] as lr left join Employee as emp on lr.[Employee] = emp.ID where emp.[People Partner] = " + id;
         }
 
         public static string CreateGetMyLeaveRequestCommand(int id)
@@ -570,6 +754,68 @@ namespace OutOfOffice.Components.Backend
                         // write to log about error data
                     }
                     leaveRequests.Add(leaveRequest);
+            }
+
+            return leaveRequests;
+
+        }
+
+        public static async Task<List<LeaveRequest>> GetLeaveRequestsAsyncWithProjectManager(int id)
+        {
+            List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+            String str = CreateGetLeaveRequestWithProjectManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(LeaveRequest));
+            foreach (Dictionary<string, object> row in rows)
+            {
+                LeaveRequest leaveRequest = new LeaveRequest();
+                try
+                {
+                    leaveRequest.ID = (int)(long)row["ID"];
+                    leaveRequest.EmployeeId = (int)(long)row["Employee"];
+                    leaveRequest.Employee = row["EmployeeString"].ToString();
+                    leaveRequest.Absence_Reason = row["Absence Reason"].ToString();
+                    leaveRequest.Start_Date = (DateTime)row["Start Date"];
+                    leaveRequest.End_Date = (DateTime)row["End Date"];
+                    leaveRequest.Comment = row["Comment"].ToString();
+                    leaveRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+                leaveRequests.Add(leaveRequest);
+            }
+
+            return leaveRequests;
+
+        }
+
+        public static async Task<List<LeaveRequest>> GetLeaveRequestsAsyncWithHRManager(int id)
+        {
+            List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+            String str = CreateGetLeaveRequestWithHRManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(LeaveRequest));
+            foreach (Dictionary<string, object> row in rows)
+            {
+                LeaveRequest leaveRequest = new LeaveRequest();
+                try
+                {
+                    leaveRequest.ID = (int)(long)row["ID"];
+                    leaveRequest.EmployeeId = (int)(long)row["Employee"];
+                    leaveRequest.Employee = row["EmployeeString"].ToString();
+                    leaveRequest.Absence_Reason = row["Absence Reason"].ToString();
+                    leaveRequest.Start_Date = (DateTime)row["Start Date"];
+                    leaveRequest.End_Date = (DateTime)row["End Date"];
+                    leaveRequest.Comment = row["Comment"].ToString();
+                    leaveRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+                leaveRequests.Add(leaveRequest);
             }
 
             return leaveRequests;
