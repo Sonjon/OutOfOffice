@@ -212,7 +212,7 @@ namespace OutOfOffice.Components.Data
         public int? LeaveRequest { get; set; }
 
         [Required, DisplayName("Status")]
-        public LeaveRequestStatus Status { get; set; } = LeaveRequestStatus.New;
+        public LeaveRequestStatus Status { get; set; } = LeaveRequestStatus.Submitted;
 
         [Required, DisplayName("Comment")]
         public string Comment { get; set; }
@@ -227,21 +227,25 @@ namespace OutOfOffice.Components.Data
             this.Comment = employee.Comment;
         }
 
-        public async void Approve()
+        public async void Approve(int id)
         {
-            if (this.Status == LeaveRequestStatus.New)
+            if (this.Status == LeaveRequestStatus.Submitted)
             {
                 this.Status = LeaveRequestStatus.Approved;
+                this.Approver = id;
                 await Backend.Backend.Update_LeaveRequest_Status_ByID((int)this.LeaveRequest, LeaveRequestStatus.Approved);
+                await Backend.Backend.Update_ApprovalRequest(this);
             }
         }
 
-        public async void Reject()
+        public async void Reject(int id)
         {
-            if (this.Status == LeaveRequestStatus.New)
+            if (this.Status == LeaveRequestStatus.Submitted)
             {
                 this.Status = LeaveRequestStatus.Rejected;
+                this.Approver = id;
                 await Backend.Backend.Update_LeaveRequest_Status_ByID((int)this.LeaveRequest, LeaveRequestStatus.Rejected);
+                await Backend.Backend.Update_ApprovalRequest(this);
             }
         }
     }

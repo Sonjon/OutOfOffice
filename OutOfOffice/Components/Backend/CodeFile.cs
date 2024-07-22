@@ -406,6 +406,88 @@ namespace OutOfOffice.Components.Backend
             return approvalsRequest;
         }
 
+        public static async Task<List<ApprovalRequest>> GetApprovalRequestAsyncWithProjectManager(int id)
+        {
+            List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
+            String str = CreateApprovalRequestWithProjectManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    ApprovalRequest approvalRequest = new ApprovalRequest();
+                    approvalRequest.ID = (int)(long)row["ID"];
+                    approvalRequest.Approver = (row["Approver"] == DBNull.Value) ? null : (int)(long)row["Approver"];
+                    approvalRequest.Approver_String = row["ApproverName"].ToString();
+                    approvalRequest.LeaveRequest = (int)(long)row["Leave Request"];
+                    approvalRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                    approvalRequest.Comment = row["Comment"].ToString();
+                    approvalsRequest.Add(approvalRequest);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return approvalsRequest;
+        }
+
+        public static async Task<List<ApprovalRequest>> GetApprovalRequestAsyncWithHRManager(int id)
+        {
+            List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
+            String str = CreateApprovalRequestWithHRManagerCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    ApprovalRequest approvalRequest = new ApprovalRequest();
+                    approvalRequest.ID = (int)(long)row["ID"];
+                    approvalRequest.Approver = (row["Approver"] == DBNull.Value) ? null : (int)(long)row["Approver"];
+                    approvalRequest.Approver_String = row["ApproverName"].ToString();
+                    approvalRequest.LeaveRequest = (int)(long)row["Leave Request"];
+                    approvalRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                    approvalRequest.Comment = row["Comment"].ToString();
+                    approvalsRequest.Add(approvalRequest);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return approvalsRequest;
+        }
+
+
+        public static async Task<List<ApprovalRequest>> GetMyApprovalRequestAsync(int id)
+        {
+            List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
+            String str = CreateMyApprovalRequestCommand(id);
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    ApprovalRequest approvalRequest = new ApprovalRequest();
+                    approvalRequest.ID = (int)(long)row["ID"];
+                    approvalRequest.Approver = (row["Approver"] == DBNull.Value) ? null : (int)(long)row["Approver"];
+                    approvalRequest.Approver_String = row["ApproverName"].ToString();
+                    approvalRequest.LeaveRequest = (int)(long)row["Leave Request"];
+                    approvalRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                    approvalRequest.Comment = row["Comment"].ToString();
+                    approvalsRequest.Add(approvalRequest);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return approvalsRequest;
+        }
+
         //approval request
 
         public static string CreateGetEmployeesCommand()
@@ -421,6 +503,21 @@ namespace OutOfOffice.Components.Backend
         public static string CreateApprovalRequestCommand()
         {
             return "Select ap.*, Manager.[Full Name] as ApproverName from [Approval Request] as ap left join Employee as Manager on ap.[Approver] = Manager.ID";
+        }
+
+        public static string CreateApprovalRequestWithProjectManagerCommand(int id)
+        {
+            return "Select ap.*, Manager.[Full Name] as ApproverName from [Approval Request] as ap left join Employee as Manager on ap.[Approver] = Manager.ID left join [Leave Request] as lr on lr.ID = ap.[Leave Request] left join Employee as emp on emp.ID = lr.Employee left join Project as pr on pr.ID = emp.Project where pr.[Project Manager] = " + id;
+        }
+
+        public static string CreateApprovalRequestWithHRManagerCommand(int id)
+        {
+            return "Select ap.*, Manager.[Full Name] as ApproverName from [Approval Request] as ap left join Employee as Manager on ap.[Approver] = Manager.ID left join [Leave Request] as lr on ap.[Leave Request] = lr.ID left join Employee as emp on lr.Employee = emp.ID where emp.[People Partner] = " + id;
+        }
+
+        public static string CreateMyApprovalRequestCommand(int id)
+        {
+            return "Select ap.*, Manager.[Full Name] as ApproverName from [Approval Request] as ap left join Employee as Manager on ap.[Approver] = Manager.ID left join [Leave Requst] as lr on ap.[Leave Request] = lr.ID where lr.Employee = " + id;
         }
 
         public static string CreateGetManagerProjectsCommand(int i)
@@ -670,8 +767,16 @@ namespace OutOfOffice.Components.Backend
         {
             String str = "insert into [Approval Request] ([Leave Request], [Status], [Comment]) ";
             str += "values('" + newLeaveRequest.ID + "','";
-            str += LeaveRequestStatus.New + "','" + newLeaveRequest.Comment + "')";
+            str += LeaveRequestStatus.Submitted + "','" + newLeaveRequest.Comment + "')";
 
+            return sendInputSQLCommand(str);
+        }
+
+
+
+        public static async Task<bool> Update_ApprovalRequest(ApprovalRequest approvalRequest)
+        {
+            String str = "update [Approval Request] set [Status] = '" + approvalRequest.Status + "', [Approver] = '"+approvalRequest.Approver+"' WHERE ID = " + approvalRequest.ID;
             return sendInputSQLCommand(str);
         }
 

@@ -4,24 +4,63 @@
 @using Backend;
 @using OutOfOffice.Components.Common;
 
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <PageTitle>Approval Request List</PageTitle>
-<CustomTableComponent TItem="ApprovalRequest" shown_rows=@approvalsRequest>
+
+<AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <div class="tab">
+            <button class="@MyTabClass" @onclick="@(() => showTable("My"))">My</button>
+            <button class="@EmployeesTabClass" @onclick="@(() => showTable("Employees"))">Employees</button>
+        </div>
+    </Authorized>
+</AuthorizeView>
+@if (table == "My")
+{
+    <CustomTableComponent TItem="ApprovalRequest" shown_rows=@myApprovalsRequest>
     <RowButtons>
         <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
     </RowButtons>
-</CustomTableComponent>
+    </CustomTableComponent>
+}
+else
+{
+    <CustomTableComponent TItem="ApprovalRequest" shown_rows=@approvalsRequest>
+        <RowButtons>
+            <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
+        </RowButtons>
+    </CustomTableComponent>
+}
 
 @code {
     List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
-
+    List<ApprovalRequest> myApprovalsRequest = new List<ApprovalRequest>();
+    string table = "My";
+    string MyTabClass = "active";
+    string EmployeesTabClass = "";
 
     protected override async Task OnInitializedAsync()
     {
-        approvalsRequest = await Backend.GetApprovalRequestAsync();
+        int my_id = (int)(await AuthenticationStateProvider.GetYourID());
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                approvalsRequest = await Backend.GetApprovalRequestAsync(); 
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                approvalsRequest = await Backend.GetApprovalRequestAsyncWithHRManager((int)my_id);
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                approvalsRequest = await Backend.GetApprovalRequestAsyncWithProjectManager((int)my_id);
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                break;
+        }
+        myApprovalsRequest = await Backend.GetMyApprovalRequestAsync(my_id);
     }
 
     protected void Open(int id)
@@ -29,17 +68,20 @@
         navigationManager.NavigateTo($"/ApprovalRequestView/{id}");
     }
 
-    protected async void Approve(int request_id, bool status)
+    protected async void showTable(string tableName)
     {
-        ApprovalRequest approvalRequest = approvalsRequest.Where(request => request.ID == request_id).Single();
-        ApprovalRequest approvalRequestUpdated = new ApprovalRequest();
-        approvalRequestUpdated.Copy(approvalRequest);
-        if (status == true)
-            approvalRequestUpdated.Approve();
+        table = tableName;
+        if (tableName == "My")
+        {
+            MyTabClass = "active";
+            EmployeesTabClass = "";
+        }
         else
-            approvalRequestUpdated.Reject();
-        //await Backend.Update_ApprovalRequest(approvalRequest.ID, approvalRequestUpdated, approvalRequest);
-        approvalsRequest = await Backend.GetApprovalRequestAsync();
-        StateHasChanged();
+        {
+            MyTabClass = "";
+            EmployeesTabClass = "active";
+        }
+
     }
+
 }

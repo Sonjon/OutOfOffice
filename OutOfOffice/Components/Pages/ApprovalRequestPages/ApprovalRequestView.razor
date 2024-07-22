@@ -32,8 +32,11 @@
     <div class="form-group">
         <label for="Comment">Comment</label>
         <InputText @bind-Value=leaveRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment_approval"] />
-        <button class="btn btn-primary" @onclick="@(() => approvalRequest.Approve())">Approve</button>
-        <button class="btn btn-primary" @onclick="@(() => approvalRequest.Reject())">Reject</button>
+        @if (!hideButtons)
+        {
+            <button class="btn btn-primary" @onclick="@(() => Approve())" disabled=@disabled["Buttons"]>Approve</button>
+            <button class="btn btn-primary" @onclick="@(() => Reject())" disabled=@disabled["Buttons"]>Reject</button>
+        }
     </div>
 </EditForm>
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
@@ -42,53 +45,63 @@
     LeaveRequest leaveRequest = new LeaveRequest();
     ApprovalRequest approvalRequest = new ApprovalRequest();
     bool show_alert = false;
+    bool hideButtons = false;
     bool sucess = false;
+    int my_id;
 
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
 
-    [Parameter] 
+    [Parameter]
     public int ApprovalId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        await CreateDisabled();
+        my_id = (int)(await AuthenticationStateProvider.GetYourID());
         approvalRequest = (await Backend.GetApprovalRequestAsync()).Where(approval => approval.ID == ApprovalId).Single();
         leaveRequest = await Backend.GetLeaveRequestAsync((int)approvalRequest.LeaveRequest);
-        await CreateDisabled();
+    }
+
+    protected async void Approve()
+    {
+        approvalRequest.Approve(my_id);
+        disabled["Comment_approval"] = true;
+        disabled["Buttons"] = true;
+        StateHasChanged();
+    }
+
+    protected async void Reject()
+    {
+        approvalRequest.Reject(my_id);
+        disabled["Comment_approval"] = true;
+        disabled["Buttons"] = true;
+        StateHasChanged();
     }
 
     async Task CreateDisabled()
     {
 
-        disabled.Add("Absence Reason", false);
-        disabled.Add("Start Date", false);
-        disabled.Add("End Date", false);
-        disabled.Add("Comment", false);
-        disabled.Add("Comment_approval", false);
+        disabled.TryAdd("Absence Reason", true);
+        disabled.TryAdd("Start Date", true);
+        disabled.TryAdd("End Date", true);
+        disabled.TryAdd("Comment", true);
+        disabled.TryAdd("Comment_approval", false);
+        if (approvalRequest.Status == LeaveRequestStatus.Submitted)
+            disabled.Add("Buttons", false);
+        else
+            disabled.Add("Buttons", true);
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                disabled["Absence Reason"] = true;
-                disabled["Start Date"] = true;
-                disabled["End Date"] = true;
-                disabled["Comment"] = true;
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                disabled["Absence Reason"] = true;
-                disabled["Start Date"] = true;
-                disabled["End Date"] = true;
-                disabled["Comment"] = true;
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                disabled["Absence Reason"] = true;
-                disabled["Start Date"] = true;
-                disabled["End Date"] = true;
-                disabled["Comment"] = true;
                 break;
             case UserAuthData.Roles.EMPLOYEE:
-                disabled["Absence_Reason"] = true;
-                disabled["Start Date"] = true;
-                disabled["End Date"] = true;
-                disabled["Comment"] = true;
+                disabled["Comment_approval"] = true;
+                hideButtons = true;
+                disabled["Buttons"] = true;
                 break;
         }
     }
