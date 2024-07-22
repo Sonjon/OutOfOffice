@@ -1,5 +1,6 @@
 ﻿@using OutOfOffice.Components.Common;
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -18,23 +19,24 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-            <CascadingAuthenticationState>
-       <AuthorizeView>
-        <Authorized>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" @onclick="async() =>await AuthenticationStateProvider.LogOut()">
-                    <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span> Logout
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" @onclick="()=>expandListsNav = !expandListsNav">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Lists
-                </NavLink>
-            </div>
-            @if (expandListsNav)
+        <CascadingAuthenticationState>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" @onclick="async() =>LogOut()">
+                            <span class="bi bi-box-arrow-right-nav-menu" aria-hidden="true"></span> Logout
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" @onclick="()=>expandListsNav = !expandListsNav">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Lists
+                        </NavLink>
+                    </div>
+                    @if (expandListsNav)
                     {
-                        <AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER">
+                        <AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
                             <Authorized Context="innerContext">
+                                <!--HR_MANAGER PROJECT_MANAGER ADMINISTRATOR-->
                                 <div class="nav-item px-4">
                                     <NavLink class="nav-link" href="EmployeesList">
                                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Employees
@@ -43,60 +45,25 @@
                             </Authorized>
                         </AuthorizeView>
                         <div class="nav-item px-4">
+                            <!--EMPLOYEE HR_MANAGER PROJECT_MANAGER ADMINISTRATOR-->
                             <NavLink class="nav-link" href="LeaveRequestList">
                                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Leave Requests
                             </NavLink>
                         </div>
-                        <AuthorizeView Roles="ADMINISTRATOR">
-                            <Authorized Context="innerContext">
-
-
-                                <div class="nav-item px-4">
-                                    <NavLink class="nav-link" href="EmployeeCreator">
-                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Employee
-                                    </NavLink>
-                                </div>
-
-                                <div class="nav-item px-4">
-                                    <NavLink class="nav-link" href="EmployeeUpdate">
-                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Update Employee
-                                    </NavLink>
-                                </div>
-
-                            </Authorized>
-                        </AuthorizeView>
-                        <AuthorizeView Roles="EMPLOYEE">
-                            <Authorized Context="innerContext">
-                                <div class="nav-item px-4">
-                                    <NavLink class="nav-link" href="LeaveRequestCreator">
-                                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Leave Requests
-                                    </NavLink>
-                                </div>
-                            </Authorized>
-                        </AuthorizeView>
                         <div class="nav-item px-4">
-                            <NavLink class="nav-link" href="ProjectUpdate">
-                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ProjectUpdate
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-4">
-                            <NavLink class="nav-link" href="ProjectCreator">
-                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Project
+                            <!--EMPLOYEE HR_MANAGER PROJECT_MANAGER ADMINISTRATOR-->
+                            <NavLink class="nav-link" href="ApprovalRequestList">
+                                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Approval Requests
                             </NavLink>
                         </div>
 
                         <div class="nav-item px-4">
+                            <!--EMPLOYEE HR_MANAGER(as EMPLOYEE) PROJECT_MANAGER ADMINISTRATOR -->
                             <NavLink class="nav-link" href="ProjectList">
                                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ProjectList
                             </NavLink>
                         </div>
-                }
-                <!--
-                                    {
-                    public const string EMPLOYEE = "EMPLOYEE";
-                    public const string HR_MANAGER = "HR_MANAGER";
-                    public const string PROJECT_MANAGER = "PROJECT_MANAGER";
-                -->
+                    }
                 </Authorized>
             </AuthorizeView>
         </CascadingAuthenticationState>
@@ -105,5 +72,10 @@
 
 @code {
     bool expandListsNav = false;
-}
 
+    private async void LogOut()
+    {
+        await AuthenticationStateProvider.LogOut();
+        navigationManager.NavigateTo($"/");
+    }
+}
