@@ -70,7 +70,7 @@
         oldProjectData = await Backend.GetProjectAsync(ProjectId);
         if(oldProjectData!=null)
             newProject.Copy(oldProjectData);
-        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.Project_Manager.ToString().Replace("_", " "));
         await CreateDisabled();
         StateHasChanged();
     }
