@@ -89,12 +89,12 @@ namespace OutOfOffice.Components.Backend
                 str += "[People Partner],";
             if (newEmployee.Project != 0)
                 str += "[Project],";
-            str += "[Out-of-Office Balance]) values('"+ newEmployee.Full_Name+"','"+ newEmployee.Subdivision+"','"+ newEmployee.Position+"','"+ newEmployee.Status+"','";
+            str += "[Out-of-Office Balance]) values('" + newEmployee.Full_Name + "','" + newEmployee.Subdivision + "','" + newEmployee.Position + "','" + newEmployee.Status + "','";
             if (newEmployee.Manager != 0)
-                str += newEmployee.Manager+"','";
+                str += newEmployee.Manager + "','";
             if (newEmployee.Project != 0)
                 str += newEmployee.Project + "','";
-            str += newEmployee.Vacation+"')";
+            str += newEmployee.Vacation + "')";
             return sendInputSQLCommand(str);
         }
 
@@ -104,7 +104,7 @@ namespace OutOfOffice.Components.Backend
             String str = "update Employee set ";
             if (newEmployeeData.Full_Name != oldEmployeeData.Full_Name)
             {
-                str += "[Full Name] = '" + newEmployeeData.Full_Name+"'";
+                str += "[Full Name] = '" + newEmployeeData.Full_Name + "'";
                 coma = true;
             }
 
@@ -171,7 +171,7 @@ namespace OutOfOffice.Components.Backend
             String str = CreateGetEmployeesCommand();
             List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
             Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(Employee));
-            foreach(Dictionary<string, object> row in rows)
+            foreach (Dictionary<string, object> row in rows)
             {
                 try
                 {
@@ -188,7 +188,7 @@ namespace OutOfOffice.Components.Backend
                     employees.Add(employee);
                 }
                 catch {
-                // write to log about error data
+                    // write to log about error data
                 }
             }
 
@@ -318,7 +318,7 @@ namespace OutOfOffice.Components.Backend
             return employee;
         }
 
-        public static async Task<List<Project>> GetProjectsAsync()
+        public static async Task<List<Project>> GetAllProjectsAsync()
         {
             List<Project> projects = new List<Project>();
             String str = CreateGetProjectsCommand();
@@ -352,7 +352,7 @@ namespace OutOfOffice.Components.Backend
 
             Project project = new Project();
 
-            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);            
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
             if (rows.Count == 0)
                 return null;
             try
@@ -691,7 +691,7 @@ namespace OutOfOffice.Components.Backend
 
         public static string CreateGetManagerProjectsCommand(int i)
         {
-            return "Select * from Project where [Project Manager]="+i;
+            return "Select * from Project where [Project Manager]=" + i;
         }
 
         public static string CreateGetProjectsEmployeesCommand(int i)
@@ -726,7 +726,7 @@ namespace OutOfOffice.Components.Backend
 
         public static string CreateGetMyLeaveRequestCommand(int id)
         {
-            return CreateGetLeaveRequestCommand() + "where emp.ID = " + id;
+            return CreateGetLeaveRequestCommand() + " where emp.ID = " + id;
         }
 
         public static async Task<List<LeaveRequest>> GetLeaveRequestsAsync()
@@ -737,23 +737,23 @@ namespace OutOfOffice.Components.Backend
             Dictionary<string, string> displayName = await Helper.getFieldsDisplayNames(typeof(LeaveRequest));
             foreach (Dictionary<string, object> row in rows)
             {
-                    LeaveRequest leaveRequest = new LeaveRequest();
-                    try
-                    {
-                        leaveRequest.ID = (int)(long)row["ID"];
-                        leaveRequest.EmployeeId = (int)(long)row["Employee"];
-                        leaveRequest.Employee = row["EmployeeString"].ToString();
-                        leaveRequest.Absence_Reason = row["Absence Reason"].ToString();
-                        leaveRequest.Start_Date = (DateTime)row["Start Date"];
-                        leaveRequest.End_Date = (DateTime)row["End Date"];
-                        leaveRequest.Comment = row["Comment"].ToString();
-                        leaveRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
-                    }
-                    catch
-                    {
-                        // write to log about error data
-                    }
-                    leaveRequests.Add(leaveRequest);
+                LeaveRequest leaveRequest = new LeaveRequest();
+                try
+                {
+                    leaveRequest.ID = (int)(long)row["ID"];
+                    leaveRequest.EmployeeId = (int)(long)row["Employee"];
+                    leaveRequest.Employee = row["EmployeeString"].ToString();
+                    leaveRequest.Absence_Reason = row["Absence Reason"].ToString();
+                    leaveRequest.Start_Date = (DateTime)row["Start Date"];
+                    leaveRequest.End_Date = (DateTime)row["End Date"];
+                    leaveRequest.Comment = row["Comment"].ToString();
+                    leaveRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+                leaveRequests.Add(leaveRequest);
             }
 
             return leaveRequests;
@@ -894,7 +894,7 @@ namespace OutOfOffice.Components.Backend
 
             LeaveRequest leaveRequest = new LeaveRequest();
 
-            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);           
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
             if (rows.Count == 0)
                 return null;
             Dictionary<string, object> row = rows[0];
@@ -1004,7 +1004,7 @@ namespace OutOfOffice.Components.Backend
         {
             String str = "insert into [Leave Request] ([Employee], [Absence Reason], [Start Date], [End Date], [Comment], [Status]) ";
             str += "values('" + newLeaveRequest.EmployeeId + "','" + newLeaveRequest.Absence_Reason + "','";
-            str += newLeaveRequest.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','" + newLeaveRequest.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','"; 
+            str += newLeaveRequest.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','" + newLeaveRequest.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','";
             str += newLeaveRequest.Comment + "','" + newLeaveRequest.Status + "')";
 
             return sendInputSQLCommand(str);

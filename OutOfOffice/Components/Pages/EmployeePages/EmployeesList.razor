@@ -5,21 +5,33 @@
 @using OutOfOffice.Components.Common;
 
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <PageTitle>Employees List</PageTitle>
-<button @onclick="@(() => AddEmployee())">Add Employee</button>
-<CustomTableComponent TItem="Employee" shown_rows=@employees>
-    <RowButtons>
-        <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
-        <AuthorizeView Roles="HR_MANAGER">
-            <Authorized Context="Context">
-                <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+<AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <AuthorizeView Roles="HR_MANAGER, ADMINISTRATOR">
+            <Authorized Context="innerContext2">
+                <button @onclick="@(() => AddEmployee())">Add Employee</button>
             </Authorized>
         </AuthorizeView>
-    </RowButtons>
-</CustomTableComponent>
+        <CustomTableComponent TItem="Employee" shown_rows=@employees>
+            <RowButtons>
+                <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
+                <AuthorizeView Roles="HR_MANAGER">
+                    <Authorized Context="Context">
+                        <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+                    </Authorized>
+                </AuthorizeView>
+            </RowButtons>
+        </CustomTableComponent>
+    </Authorized>
+    <NotAuthorized>
+        You are not authorized to see this page.
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     List<Employee> employees = new List<Employee>();
@@ -27,7 +39,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        employees = await Backend.GetEmployeesAsync();
+        int? my_id = await AuthenticationStateProvider.GetYourID();
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                employees = await Backend.GetEmployeesAsync();
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                employees = await Backend.GetEmployeesAsyncWithHRManager((int)my_id);
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                employees = await Backend.GetEmployeesAsyncWithProjectManager((int)my_id);
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                break;
+        }
     }
 
     protected void Update(int id)
@@ -37,7 +63,6 @@
 
     protected async void Deactivate(int employee_id)
     {
-
         Employee employee = employees.Where(employee => employee.ID == employee_id).Single();
         Employee employeeUpdated = new Employee();
         employeeUpdated.Copy(employee);

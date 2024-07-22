@@ -38,8 +38,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        newLeaveRequest.Status = LeaveRequestStatus.New;
-        newLeaveRequest.EmployeeId = await AuthenticationStateProvider.GetYourID();
+        int myId = (int)(await AuthenticationStateProvider.GetYourID());
+        if (myId != null)
+        {
+
+            newLeaveRequest.Status = LeaveRequestStatus.New;
+            newLeaveRequest.EmployeeId = myId;
+        }
     }
 
     async void ValidFormSubmitted(EditContext editContext)

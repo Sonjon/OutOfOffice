@@ -83,37 +83,47 @@
 
     async Task CreateDisabled()
     {
-        
-        disabled.Add("Absence_Reason", false);
-        disabled.Add("Start_Date", false);
-        disabled.Add("End_Date", false);
-        disabled.Add("Comment", false);
-        disabled.Add("Buttons", false);
-
-        my_id = await AuthenticationStateProvider.GetYourID();
-        if (my_id != oldLeaveRequestData.EmployeeId)
+        if (oldLeaveRequestData.Status == LeaveRequestStatus.New)
         {
-            disabled["Absence_Reason"] = true;
-            disabled["Start_Date"] = true;
-            disabled["End_Date"] = true;
-            disabled["Comment"] = true;
-            disabled["Buttons"]= true;
-            switch (await AuthenticationStateProvider.GetRole())
+            disabled.Add("Absence_Reason", false);
+            disabled.Add("Start_Date", false);
+            disabled.Add("End_Date", false);
+            disabled.Add("Comment", false);
+            disabled.Add("Buttons", false);
+
+            my_id = await AuthenticationStateProvider.GetYourID();
+            if (my_id != oldLeaveRequestData.EmployeeId)
             {
-                case UserAuthData.Roles.ADMINISTRATOR:
-                    disabled["Absence_Reason"] =false;
-                    disabled["Start_Date"] = false;
-                    disabled["End_Date"] = false;
-                    disabled["Comment"] = false;
-                    disabled["Buttons"] = false;
-                    break;
-                case UserAuthData.Roles.HR_MANAGER:
-                    break;
-                case UserAuthData.Roles.PROJECT_MANAGER:
-                    break;
-                case UserAuthData.Roles.EMPLOYEE:
-                    break;
+                disabled["Absence_Reason"] = true;
+                disabled["Start_Date"] = true;
+                disabled["End_Date"] = true;
+                disabled["Comment"] = true;
+                disabled["Buttons"] = true;
+                switch (await AuthenticationStateProvider.GetRole())
+                {
+                    case UserAuthData.Roles.ADMINISTRATOR:
+                        disabled["Absence_Reason"] = false;
+                        disabled["Start_Date"] = false;
+                        disabled["End_Date"] = false;
+                        disabled["Comment"] = false;
+                        disabled["Buttons"] = false;
+                        break;
+                    case UserAuthData.Roles.HR_MANAGER:
+                        break;
+                    case UserAuthData.Roles.PROJECT_MANAGER:
+                        break;
+                    case UserAuthData.Roles.EMPLOYEE:
+                        break;
+                }
             }
+        }
+        else
+        {
+            disabled.Add("Absence_Reason", true);
+            disabled.Add("Start_Date", true);
+            disabled.Add("End_Date", true);
+            disabled.Add("Comment", true);
+            disabled.Add("Buttons", true);
         }
     }
 }

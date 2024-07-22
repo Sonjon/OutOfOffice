@@ -4,26 +4,71 @@
 @using Backend;
 @using OutOfOffice.Components.Common;
 
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <PageTitle>Employees List</PageTitle>
 <button @onclick="@(() => AddProject())">Add Project</button>
-<CustomTableComponent TItem="Project" shown_rows=@projects>
-    <RowButtons>
-        <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
-        <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
-    </RowButtons>
-</CustomTableComponent>
+
+<AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <div class="tab">
+            <button class="@MyTabClass" @onclick="@(() => showTable("My"))">My</button>
+            <button class="@EmployeesTabClass" @onclick="@(() => showTable("Employees"))">Employees</button>
+        </div>
+    </Authorized>
+</AuthorizeView>
+@if (table == "My")
+{
+    <CustomTableComponent TItem="Project" shown_rows=@myProjects>
+        <RowButtons>
+            <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
+        </RowButtons>
+    </CustomTableComponent>
+}
+else
+{
+    <CustomTableComponent TItem="Project" shown_rows=@projects>
+        <RowButtons>
+            <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
+            <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+        </RowButtons>
+    </CustomTableComponent>
+}
 
 @code {
     List<Project> projects = new List<Project>();
-
+    List<Project> myProjects = new List<Project>();
+    int my_id;
+    string table = "My";
+    string MyTabClass = "active";
+    string EmployeesTabClass = "";
 
     protected override async Task OnInitializedAsync()
     {
-        projects = await Backend.GetProjectsAsync();
+        my_id = (int)(await AuthenticationStateProvider.GetYourID());
+        
+
+
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                projects = await Backend.GetAllProjectsAsync();
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                projects = await Backend.GetProjectsByHRManager((int)my_id);
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                projects = await Backend.GetProjectsByProjectManager((int)my_id);
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                break;
+        }
+
+        
+        myProjects = await Backend.GetMyProjectAsync(my_id);
 
     }
 
@@ -31,6 +76,23 @@
     {
         navigationManager.NavigateTo($"/ProjectUpdate/{id}");
     }
+
+    protected async void showTable(string tableName)
+    {
+        table = tableName;
+        if (tableName == "My")
+        {
+            MyTabClass = "active";
+            EmployeesTabClass = "";
+        }
+        else
+        {
+            MyTabClass = "";
+            EmployeesTabClass = "active";
+        }
+
+    }
+
 
     protected async void Deactivate(int project_id)
     {
@@ -40,7 +102,7 @@
         projectUpdated.Copy(project);
         projectUpdated.Deactivate();
         await Backend.Update_Project(project.ID, projectUpdated, project);
-        projects = await Backend.GetProjectsAsync();
+        projects = await Backend.GetAllProjectsAsync();
         StateHasChanged();
     }
 

@@ -8,56 +8,79 @@
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Update employee</PageTitle>
+<AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <EditForm Model=@newPerson OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="Name">Name</label>
+                <InputText @bind-Value=newPerson.Full_Name class="form-control" id="Full Name" disabled=@disabled["Full Name"] />
+            </div>
+            <div class="form-group">
+                <label for="Subdivision">Subdivision</label>
+                <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" disabled=@disabled["Subdivision"] />
+            </div>
+            <div class="form-group">
+                <label for="Position">Position</label>
+                <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position" disabled=@disabled["Position"]>
+                    @foreach (var value in Enum.GetValues<EmployeePositions>())
+                    {
+                        <option value="@value">@value.ToString().Replace("_", " ")</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label for="Status">Status</label>
+                <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status" disabled=@disabled["Status"]>
+                    @foreach (var value in Enum.GetValues<ActiveStatus>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label for="Manager">Manager</label>
+                <select @bind=newPerson.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
+                    <option value=0></option>
+                    @foreach (Employee manager in managers)
+                    {
+                        <option value=@manager.ID>@manager.Full_Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Vacation">Vacation</label>
+                <InputNumber @bind-Value=newPerson.Vacation class="form-control" id="Vacation" disabled=@disabled["Vacation"] />
+            </div>
+            <AuthorizeView Roles="PROJECT_MANAGER, ADMINISTRATOR">
+                <Authorized Context="innerContext2">
+                    <div class="form-group">
+                        <label for="Project">Project</label>
+                        <InputSelect @bind-Value=newPerson.Project class="form-control" id="Project">
+                            <option value=0></option>
+                            @foreach (Project project in projects)
+                            {
+                                <option value="@project.ID">@project.Project_Type.ToString().Replace("_", " ")</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
 
-<EditForm Model=@newPerson OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="form-group">
-        <label for="Name">Name</label>
-        <InputText @bind-Value=newPerson.Full_Name class="form-control" id="Full Name" disabled=@disabled["Full Name"]/>
-    </div>
-    <div class="form-group">
-        <label for="Subdivision">Subdivision</label>
-        <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" disabled=@disabled["Subdivision"]/>
-    </div>
-    <div class="form-group">
-        <label for="Position">Position</label>
-        <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position" disabled=@disabled["Position"]>
-            @foreach (var value in Enum.GetValues<EmployeePositions>())
-            {
-                <option value="@value">@value.ToString().Replace("_", " ")</option>
-            }
-        </InputSelect>
-    </div>
-    <div class="form-group">
-        <label for="Status">Status</label>
-        <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status" disabled=@disabled["Status"]>
-            @foreach (var value in Enum.GetValues<ActiveStatus>())
-            {
-                <option value="@value">@value</option>
-            }
-        </InputSelect>
-    </div>
-    <div class="form-group">
-        <label for="Manager">Manager</label>
-        <select @bind=newPerson.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
-            <option value=0></option>
-            @foreach (Employee manager in managers)
-            {
-                <option value=@manager.ID>@manager.Full_Name</option>
-            }
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="Vacation">Vacation</label>
-        <InputNumber @bind-Value=newPerson.Vacation class="form-control" id="Vacation" disabled=@disabled["Vacation"]/>
-    </div>
-    <input type="submit" class="btn btn-primary" value="Save" />
-</EditForm>
-<ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
+            <input type="submit" class="btn btn-primary" value="Save" />
+        </EditForm>
+        <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
+    </Authorized>
+    <NotAuthorized>
+        You are not authorized to see this page.
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     Employee newPerson = new Employee();
+    Project newProject = new Project();
+    List<Project> projects = new List<Project>();
     Employee oldEmplyeeData = new Employee();
     List<Employee> managers = new List<Employee>();
     bool show_alert = false;
@@ -65,24 +88,24 @@
 
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
 
-    [Parameter] 
+    [Parameter]
     public int EmploiyeeId { get; set; }
 
     string LastSubmitResult;
 
     protected override async Task OnInitializedAsync()
     {
-        oldEmplyeeData = await Backend.GetEmployeeAsync(EmploiyeeId);
-        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
-        if(oldEmplyeeData!=null)
-            newPerson.Copy(oldEmplyeeData);
         await CreateDisabled();
+        oldEmplyeeData = await Backend.GetEmployeeAsync(EmploiyeeId);
+        int? my_id = await AuthenticationStateProvider.GetYourID();
+        projects = await Backend.GetProjectsByProjectManager((int)my_id);
+        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
+        if (oldEmplyeeData != null)
+            newPerson.Copy(oldEmplyeeData);
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        Backend.GetEmployeesAsync();
-        LastSubmitResult = "OnValidSubmit was executed";
         bool result = false;
         if (oldEmplyeeData != null)
             result = await Backend.Update_Employee(oldEmplyeeData.ID, newPerson, oldEmplyeeData);

@@ -9,31 +9,92 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-
 <PageTitle>LeaveRequest List</PageTitle>
 <button @onclick="@(() => AddLeaveRequest())">Add LeaveRequest</button>
-<CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
-    <RowButtons>
-        <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
-            <td><button @onclick="@(() => Submit(context.ID))">Submit</button></td>
-            <td><button @onclick="@(() => Cancel(context.ID))">Cancel</button></td>
-    </RowButtons>
-</CustomTableComponent>
+
+<AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <div class="tab">
+            <button class="@MyTabClass" @onclick="@(() => showTable("My"))">My</button>
+            <button class="@EmployeesTabClass" @onclick="@(() => showTable("Employees"))">Employees</button>
+        </div>
+    </Authorized>
+</AuthorizeView>
+@if (table == "My")
+{
+    <CustomTableComponent TItem="LeaveRequest" shown_rows=@myLeaveRequests>
+        <RowButtons>
+            <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
+            @if (my_id == context.EmployeeId)
+            {
+                <td><button @onclick="@(() => Submit(context.ID))" disabled=@checkIfNew(context.Status)>Submit</button></td>
+                <td><button @onclick="@(() => Cancel(context.ID))" disabled=@checkIfNew(context.Status)>Cancel</button></td>
+            }
+        </RowButtons>
+    </CustomTableComponent>
+}
+else
+{
+    <CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
+        <RowButtons>
+            <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
+        </RowButtons>
+    </CustomTableComponent>
+}
 
 @code {
     List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
+    List<LeaveRequest> myLeaveRequests = new List<LeaveRequest>();
     int? my_id;
+    string table = "My";
+    string MyTabClass = "active";
+    string EmployeesTabClass = "";
 
 
     protected override async Task OnInitializedAsync()
     {
-        leaveRequests = await Backend.GetLeaveRequestsAsync();
         my_id = await AuthenticationStateProvider.GetYourID();
+        myLeaveRequests = await Backend.GetMyLeaveRequestsAsync((int)my_id);
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                leaveRequests = await Backend.GetLeaveRequestsAsync();
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                leaveRequests = await Backend.GetLeaveRequestsAsyncWithHRManager((int)my_id);
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                leaveRequests = await Backend.GetLeaveRequestsAsyncWithProjectManager((int)my_id);
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                break;
+        }
+    }
+
+    protected bool checkIfNew(LeaveRequestStatus status)
+    {
+        return status != LeaveRequestStatus.New;
     }
 
     protected void Update(int id)
     {
         navigationManager.NavigateTo($"/LeaveRequestUpdate/{id}");
+    }
+
+    protected async void showTable(string tableName)
+    {
+        table = tableName;
+        if (tableName == "My")
+        {
+            MyTabClass = "active";
+            EmployeesTabClass = "";
+        }
+        else
+        {
+            MyTabClass = "";
+            EmployeesTabClass = "active";
+        }
+
     }
 
     protected async void Submit(int leaveRequest_id)
@@ -63,5 +124,6 @@
     {
         navigationManager.NavigateTo($"/LeaveRequestCreator");
     }
+
 
 }
