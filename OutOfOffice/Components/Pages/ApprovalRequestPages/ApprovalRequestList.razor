@@ -1,0 +1,45 @@
+﻿@page "/ApprovalRequestList"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using OutOfOffice.Components.Common;
+
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<PageTitle>Approval Request List</PageTitle>
+<CustomTableComponent TItem="ApprovalRequest" shown_rows=@approvalsRequest>
+    <RowButtons>
+        <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
+    </RowButtons>
+</CustomTableComponent>
+
+@code {
+    List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        approvalsRequest = await Backend.GetApprovalRequestAsync();
+    }
+
+    protected void Open(int id)
+    {
+        navigationManager.NavigateTo($"/ApprovalRequestView/{id}");
+    }
+
+    protected async void Approve(int request_id, bool status)
+    {
+        ApprovalRequest approvalRequest = approvalsRequest.Where(request => request.ID == request_id).Single();
+        ApprovalRequest approvalRequestUpdated = new ApprovalRequest();
+        approvalRequestUpdated.Copy(approvalRequest);
+        if (status == true)
+            approvalRequestUpdated.Approve();
+        else
+            approvalRequestUpdated.Reject();
+        //await Backend.Update_ApprovalRequest(approvalRequest.ID, approvalRequestUpdated, approvalRequest);
+        approvalsRequest = await Backend.GetApprovalRequestAsync();
+        StateHasChanged();
+    }
+}

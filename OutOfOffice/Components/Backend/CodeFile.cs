@@ -377,6 +377,37 @@ namespace OutOfOffice.Components.Backend
             str += " WHERE ID = " + id;
             return sendInputSQLCommand(str);
         }
+
+        //approval request
+        public static async Task<List<ApprovalRequest>> GetApprovalRequestAsync()
+        {
+            List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
+            String str = CreateApprovalRequestCommand();
+            List<Dictionary<string, object>> rows = sendSelectSQLCommand(str);
+            foreach (Dictionary<string, object> row in rows)
+            {
+                try
+                {
+                    ApprovalRequest approvalRequest = new ApprovalRequest();
+                    approvalRequest.ID = (int)(long)row["ID"];
+                    approvalRequest.Approver = (row["Approver"] == DBNull.Value) ? null : (int)(long)row["Approver"];
+                    approvalRequest.Approver_String = row["ApproverName"].ToString();
+                    approvalRequest.LeaveRequest = (int)(long)row["Leave Request"];
+                    approvalRequest.Status = Helper.ParseEnum<LeaveRequestStatus>(row["Status"].ToString());
+                    approvalRequest.Comment = row["Comment"].ToString();
+                    approvalsRequest.Add(approvalRequest);
+                }
+                catch
+                {
+                    // write to log about error data
+                }
+            }
+
+            return approvalsRequest;
+        }
+
+        //approval request
+
         public static string CreateGetEmployeesCommand()
         {
             return "Select emp.*, Manager.[Full Name] as Manager from Employee as emp left join Employee as Manager on emp.[People Partner] = Manager.ID";
@@ -386,6 +417,12 @@ namespace OutOfOffice.Components.Backend
         {
             return "Select pr.*, Manager.[Full Name] as Manager from Project as pr left join Employee as Manager on pr.[Project Manager] = Manager.ID";
         }
+
+        public static string CreateApprovalRequestCommand()
+        {
+            return "Select ap.*, Manager.[Full Name] as ApproverName from [Approval Request] as ap left join Employee as Manager on ap.[Approver] = Manager.ID";
+        }
+
         public static string CreateGetManagerProjectsCommand(int i)
         {
             return "Select * from Project where [Project Manager]="+i;
@@ -609,12 +646,31 @@ namespace OutOfOffice.Components.Backend
             }
         }
 
+        public static async Task<bool> Update_LeaveRequest_Status(LeaveRequest newLeaveRequest)
+        {
+            return await Update_LeaveRequest_Status_ByID(newLeaveRequest.ID, newLeaveRequest.Status);
+        }
+
+        public static async Task<bool> Update_LeaveRequest_Status_ByID(int id, LeaveRequestStatus status)
+        {
+            String str = "update [Leave Request] set [Status] = '" + status + "' WHERE ID = " + id;
+            return sendInputSQLCommand(str);
+        }
+
         public static async Task<bool> Add_Leave_Request(LeaveRequest newLeaveRequest)
         {
             String str = "insert into [Leave Request] ([Employee], [Absence Reason], [Start Date], [End Date], [Comment], [Status]) ";
             str += "values('" + newLeaveRequest.EmployeeId + "','" + newLeaveRequest.Absence_Reason + "','";
             str += newLeaveRequest.Start_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','" + newLeaveRequest.End_Date.ToString("MM-dd-yyyy HH:mm:ss.fff") + "','"; 
             str += newLeaveRequest.Comment + "','" + newLeaveRequest.Status + "')";
+
+            return sendInputSQLCommand(str);
+        }
+        public static async Task<bool> Add_ApprovalRequest(LeaveRequest newLeaveRequest)
+        {
+            String str = "insert into [Approval Request] ([Leave Request], [Status], [Comment]) ";
+            str += "values('" + newLeaveRequest.ID + "','";
+            str += LeaveRequestStatus.New + "','" + newLeaveRequest.Comment + "')";
 
             return sendInputSQLCommand(str);
         }

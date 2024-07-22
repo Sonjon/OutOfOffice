@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
+using OutOfOffice.Components.Backend;
 
 namespace OutOfOffice.Components.Data
 {
@@ -106,7 +107,7 @@ namespace OutOfOffice.Components.Data
     public class LeaveRequest : TableRowsBaseClass
     {
         public int ID;
-        public int? EmployeeId { get; set; }
+        public int EmployeeId { get; set; }
 
         [DisplayName("Employee")]
         public string Employee { get; set; }
@@ -123,8 +124,8 @@ namespace OutOfOffice.Components.Data
         [Required, DisplayName("Comment")]
         public string Comment { get; set; }
 
-        [Required, DisplayName("Status")]
-        public LeaveRequestStatus Status { get; set; }
+        [DisplayName("Status")]
+        public LeaveRequestStatus Status { get; set; } = LeaveRequestStatus.New;
 
         public void Copy(LeaveRequest leaveRequest)
         {
@@ -136,6 +137,25 @@ namespace OutOfOffice.Components.Data
             this.End_Date = leaveRequest.End_Date;
             this.Comment = leaveRequest.Comment;
             this.Status = leaveRequest.Status;
+        }
+
+        public async void Submitt()
+        {
+            if (this.Status == LeaveRequestStatus.New)
+            {
+                this.Status = LeaveRequestStatus.Submitted;
+                await Backend.Backend.Update_LeaveRequest_Status(this);
+                await Backend.Backend.Add_ApprovalRequest(this);
+            }
+        }
+
+        public async void Cancel()
+        {
+            if (this.Status == LeaveRequestStatus.New)
+            {
+                this.Status = LeaveRequestStatus.Canceled;
+                await Backend.Backend.Update_LeaveRequest_Status(this);
+            }
         }
     }
 
@@ -178,6 +198,51 @@ namespace OutOfOffice.Components.Data
         public async void Deactivate()
         {
             this.Status = ActiveStatus.Inactive;
+        }
+    }
+
+    public class ApprovalRequest : TableRowsBaseClass
+    {
+        public int ID;
+        public int? Approver { get; set; }
+
+        [Required, DisplayName("Approver")]
+        public string Approver_String { get; set; }
+
+        public int? LeaveRequest { get; set; }
+
+        [Required, DisplayName("Status")]
+        public LeaveRequestStatus Status { get; set; } = LeaveRequestStatus.New;
+
+        [Required, DisplayName("Comment")]
+        public string Comment { get; set; }
+
+        public void Copy(ApprovalRequest employee)
+        {
+            this.ID = employee.ID;
+            this.Approver = employee.Approver;
+            this.Approver_String = employee.Approver_String;
+            this.LeaveRequest = employee.LeaveRequest;
+            this.Status = employee.Status;
+            this.Comment = employee.Comment;
+        }
+
+        public async void Approve()
+        {
+            if (this.Status == LeaveRequestStatus.New)
+            {
+                this.Status = LeaveRequestStatus.Approved;
+                await Backend.Backend.Update_LeaveRequest_Status_ByID((int)this.LeaveRequest, LeaveRequestStatus.Approved);
+            }
+        }
+
+        public async void Reject()
+        {
+            if (this.Status == LeaveRequestStatus.New)
+            {
+                this.Status = LeaveRequestStatus.Rejected;
+                await Backend.Backend.Update_LeaveRequest_Status_ByID((int)this.LeaveRequest, LeaveRequestStatus.Rejected);
+            }
         }
     }
 

@@ -15,8 +15,8 @@
 <CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
     <RowButtons>
         <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
-        <td><button @onclick="@(() => Submit(context.ID))">Submit</button></td>
-        <td><button @onclick="@(() => Cancel(context.ID))">Cancel</button></td>
+            <td><button @onclick="@(() => Submit(context.ID))">Submit</button></td>
+            <td><button @onclick="@(() => Cancel(context.ID))">Cancel</button></td>
     </RowButtons>
 </CustomTableComponent>
 
@@ -41,11 +41,8 @@
         IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
         foreach (LeaveRequest leaveRequest in query)
         {
-            LeaveRequest leaveRequestUpdated = new LeaveRequest();
-            leaveRequestUpdated.Copy(leaveRequest);
-            leaveRequestUpdated.Status = LeaveRequestStatus.Submitted;
-            await Backend.Update_LeaveRequest(leaveRequest.ID, leaveRequestUpdated, leaveRequest);
-            if(my_id != null)
+            leaveRequest.Submitt();
+            if (my_id != null)
                 leaveRequests = await Backend.GetMyLeaveRequestsAsync((int)my_id);
             StateHasChanged();
         }
@@ -54,12 +51,9 @@
     protected async void Cancel(int leaveRequest_id)
     {
         IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
-        foreach(LeaveRequest leaveRequest in query)
+        foreach (LeaveRequest leaveRequest in query)
         {
-            LeaveRequest leaveRequestUpdated = new LeaveRequest();
-            leaveRequestUpdated.Copy(leaveRequest);
-            leaveRequestUpdated.Status = LeaveRequestStatus.Canceled;
-            await Backend.Update_LeaveRequest(leaveRequest.ID, leaveRequestUpdated, leaveRequest);
+            leaveRequest.Cancel();
             leaveRequests = await Backend.GetLeaveRequestsAsync();
             StateHasChanged();
         }

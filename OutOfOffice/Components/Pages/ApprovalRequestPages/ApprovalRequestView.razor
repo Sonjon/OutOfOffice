@@ -1,0 +1,96 @@
+﻿@page "/ApprovalRequestView/{ApprovalId:int}"
+@using System.ComponentModel.DataAnnotations;
+@using Data;
+@using Backend;
+@using Common;
+
+@inject ExtAuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Approval Requeste</PageTitle>
+
+<EditForm Model=@leaveRequest>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Absence_Reason">Absence Reason</label>
+        <InputText @bind-Value=leaveRequest.Absence_Reason class="form-control" id="Absence_Reason" disabled=@disabled["Absence Reason"] />
+    </div>
+    <div class="form-group">
+        <label for="Start_Date">Start Date</label>
+        <InputDate @bind-Value=leaveRequest.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start Date"] />
+    </div>
+    <div class="form-group">
+        <label for="End_Date">End Date</label>
+        <InputDate @bind-Value=leaveRequest.End_Date class="form-select" id="End_Date" disabled=@disabled["End Date"] />
+    </div>
+    <div class="form-group">
+        <label for="Comment">Comment</label>
+        <InputText @bind-Value=leaveRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment"] />
+    </div>
+</EditForm>
+<EditForm Model=@approvalRequest>
+    <div class="form-group">
+        <label for="Comment">Comment</label>
+        <InputText @bind-Value=leaveRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment_approval"] />
+        <button class="btn btn-primary" @onclick="@(() => approvalRequest.Approve())">Approve</button>
+        <button class="btn btn-primary" @onclick="@(() => approvalRequest.Reject())">Reject</button>
+    </div>
+</EditForm>
+<ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
+
+@code {
+    LeaveRequest leaveRequest = new LeaveRequest();
+    ApprovalRequest approvalRequest = new ApprovalRequest();
+    bool show_alert = false;
+    bool sucess = false;
+
+    Dictionary<string, bool> disabled = new Dictionary<string, bool>();
+
+    [Parameter] 
+    public int ApprovalId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        approvalRequest = (await Backend.GetApprovalRequestAsync()).Where(approval => approval.ID == ApprovalId).Single();
+        leaveRequest = await Backend.GetLeaveRequestAsync((int)approvalRequest.LeaveRequest);
+        await CreateDisabled();
+    }
+
+    async Task CreateDisabled()
+    {
+
+        disabled.Add("Absence Reason", false);
+        disabled.Add("Start Date", false);
+        disabled.Add("End Date", false);
+        disabled.Add("Comment", false);
+        disabled.Add("Comment_approval", false);
+        switch (await AuthenticationStateProvider.GetRole())
+        {
+            case UserAuthData.Roles.ADMINISTRATOR:
+                disabled["Absence Reason"] = true;
+                disabled["Start Date"] = true;
+                disabled["End Date"] = true;
+                disabled["Comment"] = true;
+                break;
+            case UserAuthData.Roles.HR_MANAGER:
+                disabled["Absence Reason"] = true;
+                disabled["Start Date"] = true;
+                disabled["End Date"] = true;
+                disabled["Comment"] = true;
+                break;
+            case UserAuthData.Roles.PROJECT_MANAGER:
+                disabled["Absence Reason"] = true;
+                disabled["Start Date"] = true;
+                disabled["End Date"] = true;
+                disabled["Comment"] = true;
+                break;
+            case UserAuthData.Roles.EMPLOYEE:
+                disabled["Absence_Reason"] = true;
+                disabled["Start Date"] = true;
+                disabled["End Date"] = true;
+                disabled["Comment"] = true;
+                break;
+        }
+    }
+
+}

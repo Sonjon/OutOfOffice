@@ -31,8 +31,8 @@
     @if (!disabled["Buttons"])
     {
         <input type="submit" class="btn btn-primary" value="Save" />
-        <input type="submit" class="btn btn-primary" value="Submit" />
-        <input type="submit" class="btn btn-primary" value="Cancel" />
+        <button class="btn btn-primary" @onclick="@(() => Submit())">Submit</button>
+        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
     }
 </EditForm>
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
@@ -67,6 +67,18 @@
     {
         show_alert = true;
         sucess = false;
+    }
+
+    protected async void Submit()
+    {
+        newLeaveRequest.Submitt();
+        StateHasChanged();
+    }
+
+    protected async void Cancel()
+    {
+        newLeaveRequest.Cancel();
+        StateHasChanged();
     }
 
     async Task CreateDisabled()
