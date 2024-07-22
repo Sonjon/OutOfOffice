@@ -20,9 +20,10 @@ namespace OutOfOffice.Components.Backend
 {
     public class Backend
     {
+        private static SqlConnection myConn = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=OutOfOffice;Integrated Security=True;");
+
         private static bool sendInputSQLCommand(string command)
         {
-            SqlConnection myConn = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=OutOfOffice;Integrated Security=True;");
             try
             {
                 using (SqlCommand cmd = new SqlCommand(command, myConn))
@@ -51,7 +52,6 @@ namespace OutOfOffice.Components.Backend
         private static List<Dictionary<string, object>> sendSelectSQLCommand(string command)
         {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            SqlConnection myConn = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Database=OutOfOffice;Integrated Security=True;");
             try
             {
                 using (SqlCommand cmd = new SqlCommand(command, myConn))
@@ -187,7 +187,8 @@ namespace OutOfOffice.Components.Backend
                     employee.Vacation = (int)row["Out-of-Office Balance"];
                     employees.Add(employee);
                 }
-                catch {
+                catch
+                {
                     // write to log about error data
                 }
             }
