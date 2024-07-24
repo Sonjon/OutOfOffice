@@ -21,7 +21,7 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="ApprovalRequest" shown_rows=@myApprovalsRequest>
+    <CustomTableComponent TItem="ApprovalRequest" all_rows=@myApprovalsRequest>
     <RowButtons>
         <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
     </RowButtons>
@@ -29,7 +29,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="ApprovalRequest" shown_rows=@approvalsRequest>
+    <CustomTableComponent TItem="ApprovalRequest" all_rows=@approvalsRequest>
         <RowButtons>
             <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
         </RowButtons>

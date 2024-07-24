@@ -41,7 +41,7 @@
                 {
                     <td>@GetStringValue(name.Key, row)</td>
                 }
-                @if(RowButtons != null)
+                @if (RowButtons != null)
                     @RowButtons(row)
             </tr>
         }
@@ -65,24 +65,25 @@
 
 @code {
     [Parameter]
-    public List<TItem> shown_rows
+    public List<TItem> all_rows
     {
-        get => _shown_rows;
+        get => _all_rows;
         set
         {
-            if (_shown_rows == value) return;
+            if (_all_rows == value) return;
 
-            _shown_rows = value;
-            temp_shown_rows.InvokeAsync(value);
+            _all_rows = value;
+            temp_all_rows.InvokeAsync(value);
+            resetList();
         }
     }
-    public List<TItem> _shown_rows = new List<TItem>();
+    public List<TItem> _all_rows = new List<TItem>();
 
     [Parameter]
-    public EventCallback<List<TItem>> temp_shown_rows { get; set; }
+    public EventCallback<List<TItem>> temp_all_rows { get; set; }
 
     [Parameter]
-    public RenderFragment<TItem> RowButtons { get; set; } 
+    public RenderFragment<TItem> RowButtons { get; set; }
 
     //const variables
     const string default_sort = "fa fa-sort";
@@ -92,7 +93,7 @@
     //help variables
     bool asc = true;
     string SortColumn = "";
-    List<TItem> all_rows = new List<TItem>();
+    List<TItem> shown_rows = new List<TItem>();
     Dictionary<string, string> sort_icon = new Dictionary<string, string>();
     Dictionary<string, List<checkboxOption>> filtr = new Dictionary<string, List<checkboxOption>>();
     Dictionary<string, List<string>> all_filtr = new Dictionary<string, List<string>>();
@@ -103,7 +104,12 @@
     protected override async Task OnInitializedAsync()
     {
         header_list = await Helper.getFieldsDisplayNames(typeof(TItem));
-        all_rows = shown_rows.GetRange(0, shown_rows.Count);
+
+    }
+
+    protected void resetList()
+    {
+        shown_rows = all_rows.GetRange(0, all_rows.Count);
         var listOfFieldNames = typeof(TItem).GetProperties().Select(f => f.Name).ToList();
         foreach (string field in listOfFieldNames)
         {
@@ -112,19 +118,16 @@
             search.TryAdd(field, "");
             all_filtr.TryAdd(field, new List<string>());
             filtr.TryAdd(field, new List<checkboxOption>());
-            foreach (TItem leaveRequest in all_rows)
+            foreach (TItem leaveRequest in shown_rows)
             {
                 System.Reflection.PropertyInfo prop = typeof(TItem).GetProperty(field);
                 var var_value = prop.GetValue(leaveRequest, null);
-                if (var_value != null)
-                {
-                    string value = var_value.ToString();
+                string value = (var_value != null) ? var_value.ToString() : "";
 
-                    if (!all_filtr[field].Contains(value))
-                    {
-                        all_filtr[field].Add(value);
-                        filtr[field].Add(new checkboxOption(value, true));
-                    }
+                if (!all_filtr[field].Contains(value))
+                {
+                    all_filtr[field].Add(value);
+                    filtr[field].Add(new checkboxOption(value, true));
                 }
             }
         }
@@ -151,6 +154,7 @@
 
     protected void Filtr()
     {
+        shown_rows = all_rows.GetRange(0, all_rows.Count);
         foreach (KeyValuePair<string, List<checkboxOption>> entry in filtr)
         {
             List<string> active_filtr = new List<string>();
@@ -161,7 +165,7 @@
                     active_filtr.Add(test.Text);
             }
 
-            shown_rows = shown_rows.Where(x => active_filtr.Contains(prop.GetValue(x, null).ToString())).ToList();
+            shown_rows = shown_rows.Where(x => active_filtr.Contains((prop.GetValue(x, null) != null) ? prop.GetValue(x, null).ToString() : "")).ToList();
             int i = 0;
         }
     }
@@ -196,7 +200,7 @@
     {
         Type type = item.GetType();
         System.Reflection.PropertyInfo prop = type.GetProperty(name);
-        var fieldValue = prop.GetValue(item, null)!=null ? prop.GetValue(item, null).ToString() : "";
+        var fieldValue = prop.GetValue(item, null) != null ? prop.GetValue(item, null).ToString() : "";
 
         string value = (string)Convert.ChangeType(fieldValue, typeof(string));
         return value;

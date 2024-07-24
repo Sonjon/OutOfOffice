@@ -22,7 +22,7 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="LeaveRequest" shown_rows=@myLeaveRequests>
+    <CustomTableComponent TItem="LeaveRequest" all_rows=@myLeaveRequests>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
             @if (my_id == context.EmployeeId)
@@ -35,7 +35,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="LeaveRequest" shown_rows=@leaveRequests>
+    <CustomTableComponent TItem="LeaveRequest" all_rows=@leaveRequests>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
         </RowButtons>

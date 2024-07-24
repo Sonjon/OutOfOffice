@@ -22,7 +22,7 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="Project" shown_rows=@myProjects>
+    <CustomTableComponent TItem="Project" all_rows=@myProjects>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
         </RowButtons>
@@ -30,7 +30,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="Project" shown_rows=@projects>
+    <CustomTableComponent TItem="Project" all_rows=@projects>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
             <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>

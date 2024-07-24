@@ -17,7 +17,7 @@
                 <button @onclick="@(() => AddEmployee())">Add Employee</button>
             </Authorized>
         </AuthorizeView>
-        <CustomTableComponent TItem="Employee" shown_rows=@employees>
+        <CustomTableComponent TItem="Employee" all_rows=@employees>
             <RowButtons>
                 <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
                 <AuthorizeView Roles="HR_MANAGER">
