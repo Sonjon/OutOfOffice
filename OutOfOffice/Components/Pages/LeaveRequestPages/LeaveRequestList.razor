@@ -3,9 +3,11 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces;
 
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+@inject ILeaveRequestRepository leaveRequestRepository
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
@@ -22,7 +24,7 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="LeaveRequest" all_rows=@myLeaveRequests>
+    <CustomTableComponent TItem="LeaveRequestData" all_rows=@myLeaveRequests>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
             @if (my_id == context.EmployeeId)
@@ -35,7 +37,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="LeaveRequest" all_rows=@leaveRequests>
+    <CustomTableComponent TItem="LeaveRequestData" all_rows=@leaveRequests>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
         </RowButtons>
@@ -43,9 +45,9 @@ else
 }
 
 @code {
-    List<LeaveRequest> leaveRequests = new List<LeaveRequest>();
-    List<LeaveRequest> myLeaveRequests = new List<LeaveRequest>();
-    int? my_id;
+    List<LeaveRequestData> leaveRequests = new List<LeaveRequestData>();
+    List<LeaveRequestData> myLeaveRequests = new List<LeaveRequestData>();
+    long? my_id;
     string table = "My";
     string MyTabClass = "active";
     string EmployeesTabClass = "";
@@ -54,29 +56,29 @@ else
     protected override async Task OnInitializedAsync()
     {
         my_id = await AuthenticationStateProvider.GetYourID();
-        myLeaveRequests = await Backend.GetMyLeaveRequestsAsync((int)my_id);
+        myLeaveRequests = await leaveRequestRepository.GetAllLeaveRequestByEmployee((long)my_id);
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                leaveRequests = await Backend.GetLeaveRequestsAsync();
+                leaveRequests = await leaveRequestRepository.GetAllLeaveRequests();
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                leaveRequests = await Backend.GetLeaveRequestsAsyncWithHRManager((int)my_id);
+                leaveRequests = await leaveRequestRepository.GetAllLeaveRequestHRManager((long)my_id);
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                leaveRequests = await Backend.GetLeaveRequestsAsyncWithProjectManager((int)my_id);
+                leaveRequests = await leaveRequestRepository.GetAllLeaveRequestProjectManager((long)my_id);
                 break;
             case UserAuthData.Roles.EMPLOYEE:
                 break;
         }
     }
 
-    protected bool checkIfNew(LeaveRequestStatus status)
+    protected bool checkIfNew(string status)
     {
-        return status != LeaveRequestStatus.New;
+        return status != LeaveRequestStatus.New.ToString();
     }
 
-    protected void Update(int id)
+    protected void Update(long id)
     {
         navigationManager.NavigateTo($"/LeaveRequestUpdate/{id}");
     }
@@ -97,27 +99,30 @@ else
 
     }
 
-    protected async void Submit(int leaveRequest_id)
+    protected async Task Submit(long leaveRequest_id)
     {
-        IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
-        foreach (LeaveRequest leaveRequest in query)
-        {
-            leaveRequest.Submitt();
-            if (my_id != null)
-                leaveRequests = await Backend.GetMyLeaveRequestsAsync((int)my_id);
-            StateHasChanged();
-        }
+        LeaveRequestData leaveRequest;
+        if(table == "My")
+            leaveRequest = myLeaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id).Single();
+        else
+            leaveRequest= leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id).Single();
+        leaveRequest.Submitt();
+
+
+        //workaournd for tracking issue
+        leaveRequest.EmployeeData = null;
+
+        await leaveRequestRepository.Update(leaveRequest);
+        StateHasChanged();
     }
 
-    protected async void Cancel(int leaveRequest_id)
+    protected async Task Cancel(long leaveRequest_id)
     {
-        IEnumerable<LeaveRequest> query = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id);
-        foreach (LeaveRequest leaveRequest in query)
-        {
-            leaveRequest.Cancel();
-            leaveRequests = await Backend.GetLeaveRequestsAsync();
-            StateHasChanged();
-        }
+        LeaveRequestData leaveRequest = leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id).Single();
+        leaveRequest.Cancel();
+
+        await leaveRequestRepository.Update(leaveRequest);
+        StateHasChanged();
     }
 
     protected void AddLeaveRequest()

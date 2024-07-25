@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.EntityFrameworkCore;
 using OutOfOffice.Components;
+using OutOfOffice.Components.Backend;
 using OutOfOffice.Components.Common;
+using OutOfOffice.Components.Repository;
+using OutOfOffice.Components.Repository.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +15,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie( options =>
+    .AddCookie(options =>
     {
         options.Cookie.Name = "auth_token";
     });
@@ -24,6 +28,14 @@ builder.Services.AddScoped<ExtAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<ExtAuthenticationStateProvider>());
 builder.Services.AddAuthorizationCore();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>{
+options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=OutOfOffice;Integrated Security=True;");
+}, ServiceLifetime.Scoped );
+
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
 
 var app = builder.Build();
 

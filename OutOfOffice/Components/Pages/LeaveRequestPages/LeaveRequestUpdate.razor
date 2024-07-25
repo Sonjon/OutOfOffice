@@ -1,64 +1,64 @@
 ﻿@page "/LeaveRequestUpdate"
-@page "/LeaveRequestUpdate/{LeaveRequestId:int}"
+@page "/LeaveRequestUpdate/{LeaveRequestId:long}"
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces;
+@inject ILeaveRequestRepository leaveRequestRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Submit Leave Request</PageTitle>
 
 
-<EditForm Model=@newLeaveRequest OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+<EditForm Model=@leaveRequest OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
     <DataAnnotationsValidator />
     <ValidationSummary />
     <div class="form-group">
         <label for="Absence_Reason">Absence Reason</label>
-        <InputText @bind-Value=newLeaveRequest.Absence_Reason class="form-control" id="Absence_Reason" disabled=@disabled["Absence_Reason"] />
+        <InputText @bind-Value=leaveRequest.Absence_Reason class="form-control" id="Absence_Reason" disabled=@disabled["Absence_Reason"] />
     </div>
     <div class="form-group">
         <label for="Start_Date">Start Date</label>
-        <InputDate @bind-Value=newLeaveRequest.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start_Date"] />
+        <InputDate @bind-Value=leaveRequest.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start_Date"] />
     </div>
     <div class="form-group">
         <label for="End_Date">End Date</label>
-        <InputDate @bind-Value=newLeaveRequest.End_Date class="form-select" id="End_Date" disabled=@disabled["End_Date"] />
-        </div>
+        <InputDate @bind-Value=leaveRequest.End_Date class="form-select" id="End_Date" disabled=@disabled["End_Date"] />
+    </div>
     <div class="form-group">
         <label for="Comment">Comment</label>
-        <InputText @bind-Value=newLeaveRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment"] />
+        <InputText @bind-Value=leaveRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment"] />
     </div>
     @if (!disabled["Buttons"])
     {
         <input type="submit" class="btn btn-primary" value="Save" />
-        <button class="btn btn-primary" @onclick="@(() => Submit())">Submit</button>
-        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+        <button class="btn btn-primary" @onclick="@(() => Submit())">Save and Submit</button>
+        <button class="btn btn-primary" @onclick="@(() => Cancel())">Save and Cancel</button>
     }
 </EditForm>
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
 
 @code {
-    LeaveRequest newLeaveRequest = new LeaveRequest();
-    LeaveRequest oldLeaveRequestData = new LeaveRequest();
+    LeaveRequestData leaveRequest = new LeaveRequestData();
     bool show_alert = false;
     bool sucess = false;
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
-    int? my_id;
+    long? my_id;
 
     [Parameter]
-    public int LeaveRequestId { get; set; }
+    public long LeaveRequestId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        oldLeaveRequestData = await Backend.GetLeaveRequestAsync(LeaveRequestId);
-        if (oldLeaveRequestData != null)
-            newLeaveRequest.Copy(oldLeaveRequestData);
         await CreateDisabled();
+        leaveRequest = await leaveRequestRepository.GetAllLeaveRequestsById(LeaveRequestId);
+        await UpdateDisabled();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        bool result = await Backend.Add_Leave_Request(newLeaveRequest);
+        bool result = await leaveRequestRepository.Update(leaveRequest);
         show_alert = true;
         sucess = result;
     }
@@ -69,21 +69,71 @@
         sucess = false;
     }
 
-    protected async void Submit()
+    protected async Task Submit()
     {
-        newLeaveRequest.Submitt();
+        leaveRequest.Submitt();
+        show_alert = true;
+        sucess = true;
         StateHasChanged();
     }
 
-    protected async void Cancel()
+    protected async Task Cancel()
     {
-        newLeaveRequest.Cancel();
+        leaveRequest.Cancel();
+        show_alert = true;
+        sucess = true;
         StateHasChanged();
+    }
+
+    async Task UpdateDisabled()
+    {
+        if (leaveRequest.Status == LeaveRequestStatus.New.ToString())
+        {
+            disabled["Absence_Reason"] = false;
+            disabled["Start_Date"] = false;
+            disabled["End_Date"] = false;
+            disabled["Comment"] = false;
+            disabled["Buttons"] = false;
+
+            my_id = await AuthenticationStateProvider.GetYourID();
+            if (my_id != leaveRequest.EmployeeId)
+            {
+                disabled["Absence_Reason"] = true;
+                disabled["Start_Date"] = true;
+                disabled["End_Date"] = true;
+                disabled["Comment"] = true;
+                disabled["Buttons"] = true;
+                switch (await AuthenticationStateProvider.GetRole())
+                {
+                    case UserAuthData.Roles.ADMINISTRATOR:
+                        disabled["Absence_Reason"] = false;
+                        disabled["Start_Date"] = false;
+                        disabled["End_Date"] = false;
+                        disabled["Comment"] = false;
+                        disabled["Buttons"] = false;
+                        break;
+                    case UserAuthData.Roles.HR_MANAGER:
+                        break;
+                    case UserAuthData.Roles.PROJECT_MANAGER:
+                        break;
+                    case UserAuthData.Roles.EMPLOYEE:
+                        break;
+                }
+            }
+        }
+        else
+        {
+            disabled["Absence_Reason"] = true;
+            disabled["Start_Date"] = true;
+            disabled["End_Date"] = true;
+            disabled["Comment"] = true;
+            disabled["Buttons"] = true;
+        }
     }
 
     async Task CreateDisabled()
     {
-        if (oldLeaveRequestData.Status == LeaveRequestStatus.New)
+        if (leaveRequest.Status == LeaveRequestStatus.New.ToString())
         {
             disabled.Add("Absence_Reason", false);
             disabled.Add("Start_Date", false);
@@ -92,7 +142,7 @@
             disabled.Add("Buttons", false);
 
             my_id = await AuthenticationStateProvider.GetYourID();
-            if (my_id != oldLeaveRequestData.EmployeeId)
+            if (my_id != leaveRequest.EmployeeId)
             {
                 disabled["Absence_Reason"] = true;
                 disabled["Start_Date"] = true;

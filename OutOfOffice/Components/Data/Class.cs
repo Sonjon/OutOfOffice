@@ -10,13 +10,21 @@ using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using OutOfOffice.Components.Backend;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OutOfOffice.Components.Data
 {
-    public enum ActiveStatus
+    public enum enumActiveStatus
     {
         Active,
         Inactive
+    }
+
+    public struct ActiveStatus
+    {
+        public const string Active = "Active";
+
+        public const string Inactive = "Inactive";
     }
 
     public enum LeaveRequestStatus
@@ -28,6 +36,17 @@ namespace OutOfOffice.Components.Data
         Rejected
     }
 
+    public struct Positions
+    {
+        public const string EMPLOYEE = "EMPLOYEE";
+
+        public const string HR_MANAGER = "HR MANAGER";
+
+        public const string PROJECT_MANAGER = "PROJECT MANAGER";
+
+        public const string ADMINISTRATOR = "ADMINISTRATOR";
+    }
+
     public enum EmployeePositions
     {
         Employee,
@@ -36,11 +55,20 @@ namespace OutOfOffice.Components.Data
         Administrator
     }
 
-    public enum ProjectType
+    public enum enumProjectType
     {
         Frontend,
         Backend,
         Services
+    }
+
+    public struct ProjectType
+    {
+        public const string Frontend = "Frontend";
+
+        public const string Backend = "Backend";
+
+        public const string Services = "Services";
     }
 
     //Approve/Reject/New
@@ -73,7 +101,7 @@ namespace OutOfOffice.Components.Data
         [Required(ErrorMessage = "Please choose position from list"), DisplayName("Position")]
         public string Position { get; set; }
         [Required, DisplayName("Status")]
-        public ActiveStatus Status { get; set; }
+        public enumActiveStatus Status { get; set; }
 
         public int? Manager { get; set; }
         [DisplayName("People Partner")]
@@ -100,7 +128,7 @@ namespace OutOfOffice.Components.Data
 
         public async void Deactivate()
         {
-            this.Status = ActiveStatus.Inactive;
+            this.Status = enumActiveStatus.Inactive;
         }
     }
 
@@ -161,6 +189,7 @@ namespace OutOfOffice.Components.Data
 
     public class Project : TableRowsBaseClass
     {
+        [Column("ID")]
         public int ID;
         [Required(ErrorMessage = "Please choose project type from list"), DisplayName("Project Type")]
         public string Project_Type { get; set; }
@@ -180,7 +209,7 @@ namespace OutOfOffice.Components.Data
         public string Comment { get; set; }
 
         [Required, DisplayName("Status")]
-        public ActiveStatus Status { get; set; }
+        public enumActiveStatus Status { get; set; }
 
         public void Copy(Project employee)
         {
@@ -197,7 +226,7 @@ namespace OutOfOffice.Components.Data
 
         public async void Deactivate()
         {
-            this.Status = ActiveStatus.Inactive;
+            this.Status = enumActiveStatus.Inactive;
         }
     }
 
@@ -291,7 +320,7 @@ namespace OutOfOffice.Components.Data
         }
 
         public string UserName { get; set; }
-        public int EmployeeId { get; set; }
+        public long EmployeeId { get; set; }
         public string Role { get; set; }
         public List<Claim> Claims { get; set; }
 

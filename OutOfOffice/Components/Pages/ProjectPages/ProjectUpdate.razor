@@ -1,8 +1,13 @@
-﻿@page "/ProjectUpdate/{ProjectId:int}"
+﻿@page "/ProjectUpdate/{ProjectId:long}"
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces
+
+
+@inject IProjectRepository projectRepository
+@inject IEmployeeRepository employeeRepository
 
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
@@ -15,9 +20,9 @@
         <label for="Project_Type">Project Type</label>
         <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type" disabled=@disabled["Project_Type"]>
             <option value=0></option>
-            @foreach (var value in Enum.GetValues<ProjectType>())
+            @foreach (var value in Enum.GetValues<enumProjectType>())
             {
-                <option value="@value">@value</option>
+                <option value="@value.ToString()">@value.ToString()</option>
             }
         </InputSelect>
     </div>
@@ -32,9 +37,9 @@
     <div class="form-group">
         <label for="Status">Status</label>
         <InputSelect @bind-Value=newProject.Status class="form-select" id="Status" disabled=@disabled["Status"]>
-            @foreach (var value in Enum.GetValues<ActiveStatus>())
+            @foreach (var value in Enum.GetValues<enumActiveStatus>())
             {
-                <option value="@value">@value</option>
+                <option value="@value.ToString()">@value.ToString()</option>
             }
         </InputSelect>
     </div>
@@ -42,7 +47,7 @@
         <label for="Manager">Manager</label>
         <select @bind=newProject.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
             <option value=0></option>
-            @foreach (Employee manager in managers)
+            @foreach (EmployeeData manager in managers)
             {
                 <option value=@manager.ID>@manager.Full_Name</option>
             }
@@ -53,36 +58,29 @@
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
 
 @code {
-    Project newProject = new Project();
-    Project oldProjectData = new Project();
-    List<Employee> managers = new List<Employee>();
+    ProjectData newProject = new ProjectData();
+    ProjectData oldProjectData = new ProjectData();
+    List<EmployeeData> managers = new List<EmployeeData>();
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
     bool show_alert = false;
     bool sucess = false;
 
     [Parameter] 
-    public int ProjectId { get; set; }
+    public long ProjectId { get; set; }
 
     string LastSubmitResult;
 
     protected override async Task OnInitializedAsync()
     {
-        oldProjectData = await Backend.GetProjectAsync(ProjectId);
-        if(oldProjectData!=null)
-            newProject.Copy(oldProjectData);
-        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.Project_Manager.ToString().Replace("_", " "));
         await CreateDisabled();
+        newProject = await projectRepository.GetById((long)ProjectId);
+        managers = await employeeRepository.GetAllProjectManager();
         StateHasChanged();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        Backend.GetEmployeesAsync();
-        bool result = false;
-        if (oldProjectData != null)
-            result = await Backend.Update_Project(oldProjectData.ID, newProject, oldProjectData);
-        else
-            result = await Backend.Add_Project(newProject);
+        bool result = await projectRepository.Update(newProject);
         show_alert = true;
         sucess = result;
     }

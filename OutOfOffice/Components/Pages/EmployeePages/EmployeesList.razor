@@ -3,9 +3,11 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces;
 
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
+@inject IEmployeeRepository employeeRepository
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
@@ -17,7 +19,7 @@
                 <button @onclick="@(() => AddEmployee())">Add Employee</button>
             </Authorized>
         </AuthorizeView>
-        <CustomTableComponent TItem="Employee" all_rows=@employees>
+        <CustomTableComponent TItem="EmployeeData" all_rows=@employees>
             <RowButtons>
                 <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
                 <AuthorizeView Roles="HR_MANAGER">
@@ -34,42 +36,50 @@
 </AuthorizeView>
 
 @code {
-    List<Employee> employees = new List<Employee>();
+    List<EmployeeData> employees = new List<EmployeeData>();
 
 
     protected override async Task OnInitializedAsync()
     {
-        int? my_id = await AuthenticationStateProvider.GetYourID();
+        long? my_id = await AuthenticationStateProvider.GetYourID();
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                employees = await Backend.GetEmployeesAsync();
+                employees = await employeeRepository.GetAllEmployees();
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                employees = await Backend.GetEmployeesAsyncWithHRManager((int)my_id);
+                employees = await employeeRepository.GetAllEmployeeHRManager((long)my_id);
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                employees = await Backend.GetEmployeesAsyncWithProjectManager((int)my_id);
+                employees = await employeeRepository.GetAllEmployees();
                 break;
             case UserAuthData.Roles.EMPLOYEE:
                 break;
         }
+        foreach (EmployeeData employee in employees)
+        {
+            if (employee.ManagerData != null)
+                employee.Manager_String = employee.ManagerData.Full_Name;
+        }
     }
 
-    protected void Update(int id)
+    protected void Update(long id)
     {
         navigationManager.NavigateTo($"/EmployeeUpdate/{id}");
     }
 
-    protected async void Deactivate(int employee_id)
+    protected async Task Deactivate(long employee_id)
     {
-        Employee employee = employees.Where(employee => employee.ID == employee_id).Single();
-        Employee employeeUpdated = new Employee();
-        employeeUpdated.Copy(employee);
-        employeeUpdated.Deactivate();
-        await Backend.Update_Employee(employee.ID, employeeUpdated, employee);
-        employees = await Backend.GetEmployeesAsync();
-        StateHasChanged();
+        //todo repair tracking issue
+        EmployeeData employee = employees.Where(employee => employee.ID == employee_id).Single();
+
+        employee.Deactivate();
+        //workaournd for tracking issue
+        employee.ManagerData = null;
+        employee.ProjectInformation = null;
+
+
+        await employeeRepository.Update(employee);
     }
 
     protected void AddEmployee()

@@ -1,11 +1,14 @@
 ﻿@page "/EmployeeUpdate"
-@page "/EmployeeUpdate/{EmploiyeeId:int}"
+@page "/EmployeeUpdate/{EmploiyeeId:long}"
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
 @using Common;
+@using OutOfOffice.Components.Repository.Interfaces;
 
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
+@inject IEmployeeRepository employeeRepository
+@inject IProjectRepository projectRepository
 
 <PageTitle>Update employee</PageTitle>
 <AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
@@ -26,14 +29,14 @@
                 <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position" disabled=@disabled["Position"]>
                     @foreach (var value in Enum.GetValues<EmployeePositions>())
                     {
-                        <option value="@value">@value.ToString().Replace("_", " ")</option>
+                        <option value=@value.ToString().Replace("_", " ")>@value.ToString().Replace("_", " ")</option>
                     }
                 </InputSelect>
             </div>
             <div class="form-group">
                 <label for="Status">Status</label>
                 <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status" disabled=@disabled["Status"]>
-                    @foreach (var value in Enum.GetValues<ActiveStatus>())
+                    @foreach (var value in Enum.GetValues<enumActiveStatus>())
                     {
                         <option value="@value">@value</option>
                     }
@@ -43,7 +46,7 @@
                 <label for="Manager">Manager</label>
                 <select @bind=newPerson.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
                     <option value=0></option>
-                    @foreach (Employee manager in managers)
+                    @foreach (EmployeeData manager in managers)
                     {
                         <option value=@manager.ID>@manager.Full_Name</option>
                     }
@@ -57,9 +60,9 @@
                 <Authorized Context="innerContext2">
                     <div class="form-group">
                         <label for="Project">Project</label>
-                        <InputSelect @bind-Value=newPerson.Project class="form-control" id="Project">
+                        <InputSelect @bind-Value=newPerson.ProjectId class="form-control" id="Project">
                             <option value=0></option>
-                            @foreach (Project project in projects)
+                            @foreach (ProjectData project in projects)
                             {
                                 <option value="@project.ID">@project.Project_Type.ToString().Replace("_", " ")</option>
                             }
@@ -78,46 +81,48 @@
 </AuthorizeView>
 
 @code {
-    Employee newPerson = new Employee();
-    Project newProject = new Project();
-    List<Project> projects = new List<Project>();
-    Employee oldEmplyeeData = new Employee();
-    List<Employee> managers = new List<Employee>();
+    EmployeeData newPerson = new EmployeeData();
+    ProjectData newProject = new ProjectData();
+    List<ProjectData> projects = new List<ProjectData>();
+    List<EmployeeData> managers = new List<EmployeeData>();
     bool show_alert = false;
     bool sucess = false;
 
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
 
     [Parameter]
-    public int EmploiyeeId { get; set; }
-
-    string LastSubmitResult;
+    public long EmploiyeeId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         await CreateDisabled();
-        oldEmplyeeData = await Backend.GetEmployeeAsync(EmploiyeeId);
-        int? my_id = await AuthenticationStateProvider.GetYourID();
-        projects = await Backend.GetProjectsByProjectManager((int)my_id);
-        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.HR_Manager.ToString().Replace("_", " "));
-        if (oldEmplyeeData != null)
-            newPerson.Copy(oldEmplyeeData);
+        long? my_id = await AuthenticationStateProvider.GetYourID();
+
+        newPerson = await employeeRepository.GetEmployee(EmploiyeeId);
+        projects = await projectRepository.GetAllProjectForProjectManager((long)my_id);
+        managers = await employeeRepository.GetAllHRManager();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        bool result = false;
-        if (oldEmplyeeData != null)
-            result = await Backend.Update_Employee(oldEmplyeeData.ID, newPerson, oldEmplyeeData);
-        else
-            result = await Backend.Add_Employee(newPerson);
+        try
+        {
+
+            //workaournd for tracking issue
+            newPerson.ManagerData = null;
+            newPerson.ProjectInformation = null;
+            sucess = await employeeRepository.Update(newPerson);
+        }
+        catch(Exception e)
+        {
+            sucess = false;
+        }
         show_alert = true;
-        sucess = result;
+        StateHasChanged();
     }
 
     void InvalidFormSubmitted(EditContext editContext)
     {
-        LastSubmitResult = "OnInvalidSubmit was executed";
     }
 
     async Task CreateDisabled()

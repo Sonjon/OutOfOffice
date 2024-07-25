@@ -3,6 +3,8 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces;
+@inject ILeaveRequestRepository leaveRequestRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Submit Leave Request</PageTitle>
@@ -32,7 +34,7 @@
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
 
 @code {
-    LeaveRequest newLeaveRequest = new LeaveRequest();
+    LeaveRequestData newLeaveRequest = new LeaveRequestData();
     bool show_alert = false;
     bool sucess = false;
 
@@ -42,21 +44,25 @@
         if (myId != null)
         {
 
-            newLeaveRequest.Status = LeaveRequestStatus.New;
+            newLeaveRequest.Status = LeaveRequestStatus.New.ToString();
             newLeaveRequest.EmployeeId = myId;
         }
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        bool result = await Backend.Add_Leave_Request(newLeaveRequest);
+        LeaveRequestData addingLeaveRequest = new LeaveRequestData();
+        addingLeaveRequest.Copy(newLeaveRequest);
+        bool result = await leaveRequestRepository.Create(addingLeaveRequest);//await Backend.Add_Leave_Request(newLeaveRequest);
         show_alert = true;
         sucess = result;
+        StateHasChanged();
     }
 
     void InvalidFormSubmitted(EditContext editContext)
     {
         show_alert = true;
         sucess = false;
+        StateHasChanged();
     }
 }

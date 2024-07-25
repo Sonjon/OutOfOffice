@@ -2,6 +2,11 @@
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
+@using OutOfOffice.Components.Repository.Interfaces
+
+
+@inject IProjectRepository projectRepository
+@inject IEmployeeRepository employeeRepository
 
 <PageTitle>Add new employee</PageTitle>
 
@@ -12,9 +17,9 @@
         <label for="Project_Type">Project Type</label>
         <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type">
             <option value=0></option>
-            @foreach (var value in Enum.GetValues<ProjectType>())
+            @foreach (var value in Enum.GetValues<enumProjectType>())
             {
-                <option value="@value">@value</option>
+                <option value="@value.ToString()">@value.ToString()</option>
             }
         </InputSelect>
     </div>
@@ -29,7 +34,8 @@
     <div class="form-group">
         <label for="Status">Status</label>
         <InputSelect @bind-Value=newProject.Status class="form-select" id="Status">
-            @foreach (var value in Enum.GetValues<ActiveStatus>())
+            <option value=0></option>
+            @foreach (var value in Enum.GetValues<enumActiveStatus>())
             {
                 <option value="@value">@value.ToString().Replace("_"," ")</option>
             }
@@ -39,7 +45,7 @@
         <label for="Manager">Manager</label>
         <select @bind=newProject.Manager class="form-control" id="Manager">
             <option value=0></option>
-            @foreach (Employee manager in managers)
+            @foreach (EmployeeData manager in managers)
             {
                 <option value=@manager.ID>@manager.Full_Name</option>
             }
@@ -50,23 +56,32 @@
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
 
 @code {
-    Project newProject = new Project();
-    List<Employee> managers = new List<Employee>();
+    ProjectData newProject = new ProjectData();
+    List<EmployeeData> managers = new List<EmployeeData>();
     bool show_alert = false;
     bool sucess = false;
 
     protected override async Task OnInitializedAsync()
     {
-        newProject.Status = ActiveStatus.Active;
-        managers = await Backend.GetEmployeesWithPositionAsync(EmployeePositions.Project_Manager.ToString().Replace("_", " "));
+        //newProject.Status = enumActiveStatus.Active.ToString();
+        managers = await employeeRepository.GetAllHRManager();//await Backend.GetEmployeesWithPositionAsync(EmployeePositions.Project_Manager.ToString().Replace("_", " "));
     }
 
-    async void ValidFormSubmitted(EditContext editContext)
+    async Task ValidFormSubmitted(EditContext editContext)
     {
         //popup menu with success
-        bool result = await Backend.Add_Project(newProject);
+        ProjectData addedProject = new ProjectData();
+        addedProject.Copy(newProject);
+
+        //workaournd for tracking issue
+        addedProject.ManagerData = null;
+        addedProject.EmployeesList = null;
+
+        bool result = await projectRepository.Create(addedProject);//await Backend.Add_Project(newProject);
+
         show_alert = true;
         sucess = result;
+        StateHasChanged();
     }
 
     void InvalidFormSubmitted(EditContext editContext)
@@ -74,5 +89,6 @@
         //popup menu with error
         show_alert = true;
         sucess = false;
+        StateHasChanged();
     }
 }

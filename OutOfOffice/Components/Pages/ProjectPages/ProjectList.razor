@@ -3,6 +3,11 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces
+
+
+@inject IProjectRepository projectRepository
+@inject IEmployeeRepository employeeRepository
 
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
@@ -16,13 +21,13 @@
     <Authorized Context="innerContext">
         <div class="tab">
             <button class="@MyTabClass" @onclick="@(() => showTable("My"))">My</button>
-            <button class="@EmployeesTabClass" @onclick="@(() => showTable("Employees"))">Employees</button>
+            <button class="@EmployeesTabClass" @onclick="@(() => showTable("Manage"))">Manage</button>
         </div>
     </Authorized>
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="Project" all_rows=@myProjects>
+    <CustomTableComponent TItem="ProjectData" all_rows=@myProjects2>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
         </RowButtons>
@@ -30,7 +35,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="Project" all_rows=@projects>
+    <CustomTableComponent TItem="ProjectData" all_rows=@projects2>
         <RowButtons>
             <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
             <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
@@ -39,8 +44,8 @@ else
 }
 
 @code {
-    List<Project> projects = new List<Project>();
-    List<Project> myProjects = new List<Project>();
+    List<ProjectData> projects2 = new List<ProjectData>();
+    List<ProjectData> myProjects2 = new List<ProjectData>();
     int my_id;
     string table = "My";
     string MyTabClass = "active";
@@ -49,30 +54,38 @@ else
     protected override async Task OnInitializedAsync()
     {
         my_id = (int)(await AuthenticationStateProvider.GetYourID());
-        
-
 
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                projects = await Backend.GetAllProjectsAsync();
+                projects2 = await projectRepository.GetAllProject();
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                projects = await Backend.GetProjectsByHRManager((int)my_id);
+                projects2 = await projectRepository.GetAllHRManagerEmployeeProject(my_id);
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                projects = await Backend.GetProjectsByProjectManager((int)my_id);
+                projects2 = await projectRepository.GetAllProjectForProjectManager(my_id);
                 break;
             case UserAuthData.Roles.EMPLOYEE:
                 break;
         }
 
-        
-        myProjects = await Backend.GetMyProjectAsync(my_id);
+        ProjectData pr = await projectRepository.GetProject(11);
+        List<ProjectData> pr2 = await projectRepository.GetAllProject();
+        EmployeeData my_employe_data = await employeeRepository.GetById(my_id);
+        if (my_employe_data.ProjectInformation != null)
+            myProjects2.Add(my_employe_data.ProjectInformation);
+
+
+        foreach (ProjectData project in projects2)
+        {
+            if (project.ManagerData != null)
+                project.Manager_String = project.ManagerData.Full_Name;
+        }
 
     }
 
-    protected void Update(int id)
+    protected void Update(long id)
     {
         navigationManager.NavigateTo($"/ProjectUpdate/{id}");
     }
@@ -94,15 +107,16 @@ else
     }
 
 
-    protected async void Deactivate(int project_id)
+    protected async Task Deactivate(long project_id)
     {
+        ProjectData project = projects2.Where(project => project.ID == project_id).Single();
+        project.Deactivate();
 
-        Project project = projects.Where(project => project.ID == project_id).Single();
-        Project projectUpdated = new Project();
-        projectUpdated.Copy(project);
-        projectUpdated.Deactivate();
-        await Backend.Update_Project(project.ID, projectUpdated, project);
-        projects = await Backend.GetAllProjectsAsync();
+        //workaournd for tracking issue
+        project.ManagerData = null;
+        project.EmployeesList = null;
+
+        await projectRepository.Update(project);
         StateHasChanged();
     }
 

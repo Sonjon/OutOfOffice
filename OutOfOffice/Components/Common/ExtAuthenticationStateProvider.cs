@@ -75,7 +75,7 @@ namespace OutOfOffice.Components.Common
             return authData.Role;
         }
 
-        public async Task<int?> GetYourID()
+        public async Task<long?> GetYourID()
         {
             UserAuthData? authData = await authStorage.GetAuthDataAsync();
             if (authData != null)
