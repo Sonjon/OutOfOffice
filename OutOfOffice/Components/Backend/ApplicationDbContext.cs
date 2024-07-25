@@ -17,6 +17,7 @@ namespace OutOfOffice.Components.Backend
         public DbSet<EmployeeData> EmployyData { get; set; }
         public DbSet<ProjectData> ProjectData { get; set; }
         public DbSet<LeaveRequestData> LeaveRequestData { get; set; }
+        public DbSet<UserData> UserData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
