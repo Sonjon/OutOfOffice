@@ -75,7 +75,7 @@
 
     private async void LogOut()
     {
-        await AuthenticationStateProvider.LogOut();
         navigationManager.NavigateTo($"/");
+        await AuthenticationStateProvider.LogOut();
     }
 }
