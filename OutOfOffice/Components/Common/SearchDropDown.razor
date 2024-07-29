@@ -1,6 +1,6 @@
 ﻿@using OutOfOffice.Components.Common;
 
-<Dropdown TItem="string" icon="fa fa-search">
+<Dropdown @ref="dropdown" TItem="string" icon="fa fa-search">
     <ChildContent>
         <label><InputCheckbox @bind-Value=@temp_checkbox></InputCheckbox> Contains</label>
         <InputText @bind-Value=@temp_search></InputText>
@@ -46,9 +46,11 @@
     [Parameter]
     public EventCallback<string> SearchFunction { get; set; }
 
+    Dropdown<string> dropdown;
+
     public void onClick()
     {
+        dropdown.Hide();
         SearchFunction.InvokeAsync();
     }
-
 }
