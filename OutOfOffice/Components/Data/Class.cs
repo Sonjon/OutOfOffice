@@ -80,6 +80,25 @@ namespace OutOfOffice.Components.Data
         }
     }
 
+    public struct Subdivision
+    {
+        public const string Div1 = "Division 1";
+
+        public const string Div2 = "Division 2";
+
+        public const string Div3 = "Division 3";
+
+        public static List<string> getStringList()
+        {
+            List<string> result = new List<string>();
+            foreach (FieldInfo fieldInfo in typeof(Subdivision).GetFields())
+            {
+                result.Add(fieldInfo.Name);
+            }
+            return result;
+        }
+    }
+
     public class checkboxOption
     {
         public int id;

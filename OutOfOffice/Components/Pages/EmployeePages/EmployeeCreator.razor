@@ -17,7 +17,12 @@
     </div>
     <div class="form-group">
         <label for="Subdivision">Subdivision</label>
-        <InputText @bind-Value=newPerson.Subdivision class="form-control" id="Subdivision" />
+        <InputSelect @bind-Value=newPerson.Subdivision class="form-select" id="Subdivision">
+            @foreach (var value in Subdivision.getStringList())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
     </div>
     <div class="form-group">
         <label for="Position">Position</label>
