@@ -2,12 +2,9 @@
 
 namespace OutOfOffice.Components.Repository.Interfaces
 {
-    public interface IProjectRepository : IGenericRepositoryBase<ProjectData>
+    public interface IUserRepository : IGenericRepositoryBase<UserData>
     {
-        Task<ProjectData> GetProject(long projectId);
-        Task<List<ProjectData>> GetAllProject();
-        Task<List<ProjectData>> GetAllHRManagerEmployeeProject(long managerID);
-        Task<List<ProjectData>> GetAllProjectForProjectManager(long managerID);
+        Task<EmployeeData> Login(LoginRequest loginRequest);
 
     }
 }

@@ -7,16 +7,19 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Http;
 using Microsoft.AspNetCore.Identity;
 using static OutOfOffice.Components.Data.UserAuthData;
+using OutOfOffice.Components.Repository.Interfaces;
 
 namespace OutOfOffice.Components.Common
 {
     public class ExtAuthenticationStateProvider : AuthenticationStateProvider
     {
         private readonly IAuthStorage authStorage;
+        private readonly IUserRepository userRepository;
 
-        public ExtAuthenticationStateProvider(IAuthStorage authStorage)
+        public ExtAuthenticationStateProvider(IAuthStorage authStorage, IUserRepository userRepository)
         {
             this.authStorage = authStorage;
+            this.userRepository = userRepository;
         }
 
         public async override Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -32,12 +35,12 @@ namespace OutOfOffice.Components.Common
 
         public async Task LogIn(LoginRequest loginRequest)
         {
-            Employee userEmployee = await Backend.Backend.Login(loginRequest);
+            EmployeeData userEmployee = await userRepository.Login(loginRequest);
             if (userEmployee != null)
             {
                 UserAuthData authData = new UserAuthData();
                 authData.UserName = loginRequest.UserName;
-                authData.Role = userEmployee.Position.Replace(" ","_").ToUpper();
+                authData.Role = userEmployee.Position.Replace(" ", "_").ToUpper();
                 authData.EmployeeId = userEmployee.ID;
 
                 await authStorage.StoreAuthData(authData);
@@ -53,17 +56,17 @@ namespace OutOfOffice.Components.Common
 
         private async Task ReloadAuthenticationStateAsync()
         {
-                AuthenticationState authenticationState = await GetAuthenticationStateAsync();
-                NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
+            AuthenticationState authenticationState = await GetAuthenticationStateAsync();
+            NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
         }
-    
+
         public async Task<bool> IsInRole(string role)
         {
             bool result = false;
             UserAuthData? authData = await authStorage.GetAuthDataAsync();
             if (authData != null)
             {
-                if(authData.Role == role)
+                if (authData.Role == role)
                     result = true;
             }
             return result;

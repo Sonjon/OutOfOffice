@@ -10,6 +10,7 @@
 @using OutOfOffice.Components.Repository.Interfaces
 
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
+@inject IUserRepository userRepository;
 
 
 <div>
@@ -26,7 +27,7 @@
             <div class="login-area-field">
                 <input type="password" @bind-value="loginRequest.Password" />
             </div>
-            
+
             <input type="submit" value="Sign in" />
         </div>
         <DataAnnotationsValidator />
@@ -61,22 +62,9 @@
         try
         {
             ErrorMessage = string.Empty;
-            EmployeeData userEmployee = new EmployeeData(); // await userRepository.Login(loginRequest);
 
-            if (userEmployee != null)
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, loginRequest.UserName),
-                    new Claim(ClaimTypes.Role, userEmployee.Position)
-                };
-
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-
-                await AuthenticationStateProvider.LogIn(loginRequest);
-                StateHasChanged();
-            }
+            await AuthenticationStateProvider.LogIn(loginRequest);
+            StateHasChanged();
         }
         catch (Exception e)
         {
