@@ -69,16 +69,7 @@
 
     async Task ValidFormSubmitted(EditContext editContext)
     {
-        //popup menu with success
-        ProjectData addedProject = new ProjectData();
-        addedProject.Copy(newProject);
-
-        //workaournd for tracking issue
-        addedProject.ManagerData = null;
-        addedProject.EmployeesList = null;
-
-        bool result = await projectRepository.Create(addedProject);//await Backend.Add_Project(newProject);
-
+        bool result = await projectRepository.Create(newProject);
         show_alert = true;
         sucess = result;
         StateHasChanged();

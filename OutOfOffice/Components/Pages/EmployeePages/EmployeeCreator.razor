@@ -70,9 +70,7 @@
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        EmployeeData addingEmployee = new EmployeeData();
-        addingEmployee.Copy(newPerson);
-        sucess = await employeeRepository.Create(addingEmployee);
+        sucess = await employeeRepository.Create(newPerson);
         show_alert = true;
         StateHasChanged();
     }

@@ -49,5 +49,19 @@ namespace OutOfOffice.Components.Repository
 
             return await FindAsync(querable);
         }
+
+        public async Task<bool> Create(ProjectData project)
+        {
+            ProjectData cleanProject = new ProjectData();
+            cleanProject.Copy(project);
+            return await base.Create(cleanProject);
+        }
+
+        public async Task<bool> Update(ProjectData project)
+        {
+            ProjectData cleanProject = new ProjectData();
+            cleanProject.Copy(project);
+            return await base.Update(cleanProject);
+        }
     }
 }

@@ -3,6 +3,7 @@ using OutOfOffice.Components.Backend;
 using OutOfOffice.Components.Data;
 using OutOfOffice.Components.Repository.Interfaces;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace OutOfOffice.Components.Repository
@@ -50,6 +51,28 @@ namespace OutOfOffice.Components.Repository
                 .ThenInclude(y => y.ProjectInformation)
                 .Where(x => x.EmployeeData.ProjectInformation.Manager == managerId);
             return await FindAsync(querable);
+        }
+
+        public async Task<bool> Create(LeaveRequestData leaveRequest)
+        {
+            if ((leaveRequest.End_Date - leaveRequest.Start_Date).TotalDays > leaveRequest.EmployeeData.Vacation)
+            {
+                return false;
+            }
+            LeaveRequestData cleanLeaveRequest = new LeaveRequestData();
+            cleanLeaveRequest.Copy(leaveRequest);
+            return await base.Create(cleanLeaveRequest);
+        }
+
+        public async Task<bool> Update(LeaveRequestData leaveRequest)
+        {
+            if ((leaveRequest.End_Date - leaveRequest.Start_Date).TotalDays > leaveRequest.EmployeeData.Vacation)
+            {
+                return false;
+            }
+            LeaveRequestData cleanLeaveRequest = new LeaveRequestData();
+            cleanLeaveRequest.Copy(leaveRequest);
+            return await base.Update(cleanLeaveRequest);
         }
     }
 }

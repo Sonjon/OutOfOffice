@@ -5,6 +5,7 @@
 @using OutOfOffice.Components.Common;
 @using OutOfOffice.Components.Repository.Interfaces;
 @inject ILeaveRequestRepository leaveRequestRepository
+@inject IEmployeeRepository employeeRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Submit Leave Request</PageTitle>
@@ -35,25 +36,25 @@
 
 @code {
     LeaveRequestData newLeaveRequest = new LeaveRequestData();
+    EmployeeData myData = new EmployeeData();
     bool show_alert = false;
     bool sucess = false;
 
     protected override async Task OnInitializedAsync()
     {
-        int myId = (int)(await AuthenticationStateProvider.GetYourID());
+        long myId = (long)(await AuthenticationStateProvider.GetYourID());
         if (myId != null)
         {
-
-            newLeaveRequest.Status = LeaveRequestStatus.New.ToString();
+            myData = await employeeRepository.GetById(myId);
+            newLeaveRequest.Status = LeaveRequestStatus.New;
             newLeaveRequest.EmployeeId = myId;
         }
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        LeaveRequestData addingLeaveRequest = new LeaveRequestData();
-        addingLeaveRequest.Copy(newLeaveRequest);
-        bool result = await leaveRequestRepository.Create(addingLeaveRequest);//await Backend.Add_Leave_Request(newLeaveRequest);
+        newLeaveRequest.EmployeeData = myData;
+        bool result = await leaveRequestRepository.Create(newLeaveRequest);
         show_alert = true;
         sucess = result;
         StateHasChanged();

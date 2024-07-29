@@ -10,5 +10,9 @@ namespace OutOfOffice.Components.Repository.Interfaces
         Task<List<EmployeeData>> GetAllProjectManager();
         Task<List<EmployeeData>> GetAllEmployeeHRManager(long managerID);
         Task<List<EmployeeData>> GetAllEmployeeProjectManager(long managerID);
+
+        Task<bool> Create(EmployeeData employee);
+
+        Task<bool> Update(EmployeeData employee);
     }
 }

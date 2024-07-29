@@ -13,14 +13,14 @@
 
 <PageTitle>Update project</PageTitle>
 
-<EditForm Model=@newProject OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
+<EditForm Model=@project OnValidSubmit=@ValidFormSubmitted OnInvalidSubmit=@InvalidFormSubmitted>
     <DataAnnotationsValidator />
     <ValidationSummary />
     <div class="form-group">
         <label for="Project_Type">Project Type</label>
-        <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type" disabled=@disabled["Project_Type"]>
+        <InputSelect @bind-Value=project.Project_Type class="form-select" id="Project_Type" disabled=@disabled["Project_Type"]>
             <option value=0></option>
-            @foreach (var value in Enum.GetValues<enumProjectType>())
+            @foreach (var value in ProjectType.getStringList())//Enum.GetValues<enumProjectType>())
             {
                 <option value="@value.ToString()">@value.ToString()</option>
             }
@@ -28,16 +28,16 @@
     </div>
     <div class="form-group">
         <label for="Start_Date">Start Date</label>
-        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start_Date"] />
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=project.Start_Date class="form-control" id="Start_Date" disabled=@disabled["Start_Date"] />
     </div>
     <div class="form-group">
         <label for="End_Date">End Date</label>
-        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=newProject.End_Date class="form-control" id="End_Date" disabled=@disabled["End_Date"] />
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value=project.End_Date class="form-control" id="End_Date" disabled=@disabled["End_Date"] />
     </div>
     <div class="form-group">
         <label for="Status">Status</label>
-        <InputSelect @bind-Value=newProject.Status class="form-select" id="Status" disabled=@disabled["Status"]>
             @foreach (var value in Enum.GetValues<enumActiveStatus>())
+        <InputSelect @bind-Value=project.Status class="form-select" id="Status" disabled=@disabled["Status"]>
             {
                 <option value="@value.ToString()">@value.ToString()</option>
             }
@@ -45,7 +45,7 @@
     </div>
     <div class="form-group">
         <label for="Manager">Manager</label>
-        <select @bind=newProject.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
+        <select @bind=project.Manager class="form-control" id="Manager" disabled=@disabled["Manager"]>
             <option value=0></option>
             @foreach (EmployeeData manager in managers)
             {
@@ -58,8 +58,7 @@
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
 
 @code {
-    ProjectData newProject = new ProjectData();
-    ProjectData oldProjectData = new ProjectData();
+    ProjectData project = new ProjectData();
     List<EmployeeData> managers = new List<EmployeeData>();
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
     bool show_alert = false;
@@ -73,22 +72,24 @@
     protected override async Task OnInitializedAsync()
     {
         await CreateDisabled();
-        newProject = await projectRepository.GetById((long)ProjectId);
+        project = await projectRepository.GetById((long)ProjectId);
         managers = await employeeRepository.GetAllProjectManager();
         StateHasChanged();
     }
 
     async void ValidFormSubmitted(EditContext editContext)
     {
-        bool result = await projectRepository.Update(newProject);
+        bool result = await projectRepository.Update(project);
         show_alert = true;
         sucess = result;
+        StateHasChanged();
     }
 
     void InvalidFormSubmitted(EditContext editContext)
     {
         show_alert = true;
         sucess = false;
+        StateHasChanged();
     }
 
     async Task CreateDisabled()

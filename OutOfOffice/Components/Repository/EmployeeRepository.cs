@@ -60,5 +60,19 @@ namespace OutOfOffice.Components.Repository
             return await FindAsync(querable);
         }
 
+        public async Task<bool> Create(EmployeeData employee)
+        {
+            EmployeeData cleanEmployee = new EmployeeData();
+            cleanEmployee.Copy(employee);
+            return await base.Create(cleanEmployee);
+        }
+
+        public async Task<bool> Update(EmployeeData employee)
+        {
+            EmployeeData cleanEmployee = new EmployeeData();
+            cleanEmployee.Copy(employee);
+            return await base.Update(cleanEmployee);
+        }
+
     }
 }

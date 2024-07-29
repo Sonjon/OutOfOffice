@@ -8,6 +8,8 @@ namespace OutOfOffice.Components.Repository.Interfaces
         Task<List<ProjectData>> GetAllProject();
         Task<List<ProjectData>> GetAllHRManagerEmployeeProject(long managerID);
         Task<List<ProjectData>> GetAllProjectForProjectManager(long managerID);
+        Task<bool> Create(ProjectData leaveRequestData);
+        Task<bool> Update(ProjectData leaveRequestData);
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using OutOfOffice.Components.Data;
+﻿using OutOfOffice.Components.Backend;
 
 namespace OutOfOffice.Components.Repository.Interfaces
 {
@@ -14,5 +15,8 @@ namespace OutOfOffice.Components.Repository.Interfaces
 Task<List<EmployeeData>> GetAllHRManager();
 Task<List<EmployeeData>> GetAllEmployeeHRManager(long managerID);
 Task<List<EmployeeData>> GetAllEmployeeProjectManager(long managerID);*/
+        Task<bool> Create(LeaveRequestData leaveRequestData);
+
+        Task<bool> Update(LeaveRequestData leaveRequestData);
     }
 }
