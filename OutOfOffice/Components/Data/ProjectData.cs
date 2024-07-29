@@ -57,7 +57,6 @@ namespace OutOfOffice.Components.Data
             this.Start_Date = employee.Start_Date;
             this.End_Date = employee.End_Date;
             this.Manager = employee.Manager;
-            this.Manager_String = employee.Manager_String;
             this.Comment = employee.Comment;
             this.Status = employee.Status;
         }

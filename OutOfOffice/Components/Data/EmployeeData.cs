@@ -59,7 +59,6 @@ namespace OutOfOffice.Components.Data
             this.Position = employee.Position;
             this.Status = employee.Status;
             this.Manager = employee.Manager;
-            this.Manager_String = employee.Manager_String;
             this.Vacation = employee.Vacation;
             this.ProjectId = employee.ProjectId;
         }

@@ -45,7 +45,6 @@ namespace OutOfOffice.Components.Data
         public void Copy(LeaveRequestData leaveRequest)
         {
             this.EmployeeId = leaveRequest.EmployeeId;
-            this.Employee = leaveRequest.Employee;
             this.Absence_Reason = leaveRequest.Absence_Reason;
             this.Start_Date = leaveRequest.Start_Date;
             this.End_Date = leaveRequest.End_Date;
