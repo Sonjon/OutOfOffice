@@ -150,7 +150,7 @@
             }
         }
 
-        double pageCount = all_rows.Count / shown_range;
+        double pageCount = (double)all_rows.Count / shown_range;
         pageMax = (int)Math.Ceiling(pageCount);
         UpdateShownList(page);
         StateHasChanged();
