@@ -3,7 +3,9 @@
 @using Data;
 @using Backend;
 @using OutOfOffice.Components.Common;
+@using OutOfOffice.Components.Repository.Interfaces
 
+@inject IApprovalRequestRepository approvalRequestRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 
@@ -21,7 +23,7 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="ApprovalRequest" all_rows=@myApprovalsRequest>
+    <CustomTableComponent TItem="ApprovalRequestData" all_rows=@myApprovalsRequest>
     <RowButtons>
         <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
     </RowButtons>
@@ -29,7 +31,7 @@
 }
 else
 {
-    <CustomTableComponent TItem="ApprovalRequest" all_rows=@approvalsRequest>
+    <CustomTableComponent TItem="ApprovalRequestData" all_rows=@approvalsRequest>
         <RowButtons>
             <td><button @onclick="@(() => Open(context.ID))">Open</button></td>
         </RowButtons>
@@ -37,8 +39,8 @@ else
 }
 
 @code {
-    List<ApprovalRequest> approvalsRequest = new List<ApprovalRequest>();
-    List<ApprovalRequest> myApprovalsRequest = new List<ApprovalRequest>();
+    List<ApprovalRequestData> approvalsRequest = new List<ApprovalRequestData>();
+    List<ApprovalRequestData> myApprovalsRequest = new List<ApprovalRequestData>();
     string table = "My";
     string MyTabClass = "active";
     string EmployeesTabClass = "";
@@ -49,21 +51,21 @@ else
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                approvalsRequest = await Backend.GetApprovalRequestAsync(); 
+                approvalsRequest = await approvalRequestRepository.GetAllAsync();
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                approvalsRequest = await Backend.GetApprovalRequestAsyncWithHRManager((int)my_id);
+                approvalsRequest = await approvalRequestRepository.GetAllApprovalRequestHRManager((long)my_id);
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                approvalsRequest = await Backend.GetApprovalRequestAsyncWithProjectManager((int)my_id);
+                approvalsRequest = await approvalRequestRepository.GetAllApprovalRequestProjectManager((long)my_id);
                 break;
             case UserAuthData.Roles.EMPLOYEE:
                 break;
         }
-        myApprovalsRequest = await Backend.GetMyApprovalRequestAsync(my_id);
+        myApprovalsRequest = await approvalRequestRepository.GetAllApprovalRequestByEmployee((long)my_id);
     }
 
-    protected void Open(int id)
+    protected void Open(long id)
     {
         navigationManager.NavigateTo($"/ApprovalRequestView/{id}");
     }

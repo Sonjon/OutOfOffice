@@ -6,6 +6,7 @@
 @using OutOfOffice.Components.Common;
 @using OutOfOffice.Components.Repository.Interfaces;
 @inject ILeaveRequestRepository leaveRequestRepository
+@inject IApprovalRequestRepository approvalRequestRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Submit Leave Request</PageTitle>
@@ -72,6 +73,7 @@
     protected async Task Submit()
     {
         leaveRequest.Submitt();
+        await approvalRequestRepository.CreateApprovalRequestFromLeaveRequest(leaveRequest);
         show_alert = true;
         sucess = true;
         StateHasChanged();

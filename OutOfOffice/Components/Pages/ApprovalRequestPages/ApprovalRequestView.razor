@@ -3,7 +3,10 @@
 @using Data;
 @using Backend;
 @using Common;
+@using OutOfOffice.Components.Repository
+@using OutOfOffice.Components.Repository.Interfaces
 
+@inject IApprovalRequestRepository approvalRequestRepository
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Approval Requeste</PageTitle>
@@ -42,8 +45,8 @@
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Updating employee ended with sucess" Failuer_message="Something went wrong when updating employee"></ResultMessage>
 
 @code {
-    LeaveRequest leaveRequest = new LeaveRequest();
-    ApprovalRequest approvalRequest = new ApprovalRequest();
+    LeaveRequestData leaveRequest = new LeaveRequestData();
+    ApprovalRequestData approvalRequest = new ApprovalRequestData();
     bool show_alert = false;
     bool hideButtons = false;
     bool sucess = false;
@@ -58,13 +61,13 @@
     {
         await CreateDisabled();
         my_id = (int)(await AuthenticationStateProvider.GetYourID());
-        approvalRequest = (await Backend.GetApprovalRequestAsync()).Where(approval => approval.ID == ApprovalId).Single();
-        leaveRequest = await Backend.GetLeaveRequestAsync((int)approvalRequest.LeaveRequest);
+        approvalRequest = await approvalRequestRepository.GetAllApprovalRequestsById(ApprovalId);
+        leaveRequest = approvalRequest.LeaveRequest;
     }
 
     protected async void Approve()
     {
-        approvalRequest.Approve(my_id);
+        await approvalRequest.Approve(my_id);
         disabled["Comment_approval"] = true;
         disabled["Buttons"] = true;
         StateHasChanged();
@@ -72,7 +75,7 @@
 
     protected async void Reject()
     {
-        approvalRequest.Reject(my_id);
+        await approvalRequest.Reject(my_id);
         disabled["Comment_approval"] = true;
         disabled["Buttons"] = true;
         StateHasChanged();

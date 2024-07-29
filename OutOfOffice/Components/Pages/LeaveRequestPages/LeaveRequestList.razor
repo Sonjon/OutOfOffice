@@ -8,6 +8,7 @@
 @inject ExtAuthenticationStateProvider AuthenticationStateProvider
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 @inject ILeaveRequestRepository leaveRequestRepository
+@inject IApprovalRequestRepository approvalRequestRepository
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
@@ -111,6 +112,7 @@ else
 
         //workaournd for tracking issue
         leaveRequest.EmployeeData = null;
+        await approvalRequestRepository.CreateApprovalRequestFromLeaveRequest(leaveRequest);
 
         await leaveRequestRepository.Update(leaveRequest);
         StateHasChanged();
