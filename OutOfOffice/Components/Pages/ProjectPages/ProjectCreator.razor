@@ -65,8 +65,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //newProject.Status = enumActiveStatus.Active.ToString();
-        managers = await employeeRepository.GetAllHRManager();//await Backend.GetEmployeesWithPositionAsync(EmployeePositions.Project_Manager.ToString().Replace("_", " "));
+        managers = await employeeRepository.GetAllProjectManager();
     }
 
     async Task ValidFormSubmitted(EditContext editContext)
@@ -79,7 +78,6 @@
 
     void InvalidFormSubmitted(EditContext editContext)
     {
-        //popup menu with error
         show_alert = true;
         sucess = false;
         StateHasChanged();
