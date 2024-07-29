@@ -15,6 +15,10 @@
         float: right;
         margin-left: 10px;
     }
+
+    #pagination {
+        text-align: center;
+    }
 </style>
 
 <table class="table">
@@ -34,7 +38,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (TItem row in shown_rows)
+        @foreach (TItem row in shown_list_on_page)
         {
             <tr>
                 @foreach (KeyValuePair<string, string> name in header_list)
@@ -62,6 +66,14 @@
     }
 
 </table>
+<div id="pagination">
+    @for (int i = 1; i <= pageMax; i++)
+    {
+        var localVariable = i;
+        <a @onclick="@(() => UpdateShownList(localVariable))">@i&nbsp;&nbsp;&nbsp;&nbsp;</a>
+    }
+</div>
+
 
 @code {
     [Parameter]
@@ -93,6 +105,10 @@
     //help variables
     bool asc = true;
     string SortColumn = "";
+    int shown_range = 10;
+    int page = 1;
+    int pageMax = 1;
+    List<TItem> shown_list_on_page = new List<TItem>();
     List<TItem> shown_rows = new List<TItem>();
     Dictionary<string, string> sort_icon = new Dictionary<string, string>();
     Dictionary<string, List<checkboxOption>> filtr = new Dictionary<string, List<checkboxOption>>();
@@ -131,6 +147,11 @@
                 }
             }
         }
+
+        double pageCount = all_rows.Count / shown_range;
+        pageMax = (int)Math.Ceiling(pageCount);
+        UpdateShownList(page);
+        StateHasChanged();
     }
 
 
@@ -148,7 +169,7 @@
                     shown_rows = shown_rows.Where(x => prop.GetValue(x, null).ToString().Equals(entry.Value.ToString())).ToList();
             }
         }
-
+        UpdateShownList(page);
         StateHasChanged();
     }
 
@@ -168,6 +189,8 @@
             shown_rows = shown_rows.Where(x => active_filtr.Contains((prop.GetValue(x, null) != null) ? prop.GetValue(x, null).ToString() : "")).ToList();
             int i = 0;
         }
+        UpdateShownList(page);
+        StateHasChanged();
     }
 
     protected void Sort(string name)
@@ -193,6 +216,7 @@
             asc = true;
             sort_icon[name] = desc_sort;
         }
+        UpdateShownList(page);
         StateHasChanged();
     }
 
@@ -204,5 +228,16 @@
 
         string value = (string)Convert.ChangeType(fieldValue, typeof(string));
         return value;
+    }
+
+    public void UpdateShownList(int i)
+    {
+        if (i <= pageMax)
+        {
+            page = i;
+            int min = (page - 1) * shown_range < shown_rows.Count ? (page - 1) * shown_range : shown_rows.Count;
+            int getRange = min + shown_range < shown_rows.Count ? shown_range : shown_rows.Count - min;
+            shown_list_on_page = shown_rows.GetRange(min, getRange);
+        }
     }
 }
