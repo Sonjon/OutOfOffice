@@ -27,7 +27,7 @@
             <div class="form-group">
                 <label for="Position">Position</label>
                 <InputSelect @bind-Value="@newPerson.Position" class="form-control" id="Position" disabled=@disabled["Position"]>
-                    @foreach (var value in Enum.GetValues<EmployeePositions>())
+                    @foreach (var value in Positions.getStringList())
                     {
                         <option value=@value.ToString().Replace("_", " ")>@value.ToString().Replace("_", " ")</option>
                     }
@@ -36,7 +36,7 @@
             <div class="form-group">
                 <label for="Status">Status</label>
                 <InputSelect @bind-Value="@newPerson.Status" class="form-control" id="Status" disabled=@disabled["Status"]>
-                    @foreach (var value in Enum.GetValues<enumActiveStatus>())
+                    @foreach (var value in ActiveStatus.getStringList())
                     {
                         <option value="@value">@value</option>
                     }

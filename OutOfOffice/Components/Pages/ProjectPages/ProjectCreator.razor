@@ -17,7 +17,7 @@
         <label for="Project_Type">Project Type</label>
         <InputSelect @bind-Value=newProject.Project_Type class="form-select" id="Project_Type">
             <option value=0></option>
-            @foreach (var value in Enum.GetValues<enumProjectType>())
+            @foreach (var value in ProjectType.getStringList())
             {
                 <option value="@value.ToString()">@value.ToString()</option>
             }
@@ -35,9 +35,9 @@
         <label for="Status">Status</label>
         <InputSelect @bind-Value=newProject.Status class="form-select" id="Status">
             <option value=0></option>
-            @foreach (var value in Enum.GetValues<enumActiveStatus>())
+            @foreach (var value in ActiveStatus.getStringList())
             {
-                <option value="@value">@value.ToString().Replace("_"," ")</option>
+                <option value="@value">@value</option>
             }
         </InputSelect>
     </div>

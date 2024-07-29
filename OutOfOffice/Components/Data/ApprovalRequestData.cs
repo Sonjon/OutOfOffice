@@ -25,7 +25,7 @@ namespace OutOfOffice.Components.Data
 
         [Column("Status")]
         [Required, DisplayName("Status")]
-        public string Status { get; set; } = LeaveRequestStatus.Submitted.ToString();
+        public string Status { get; set; } = LeaveRequestStatus.Submitted;
 
         [Column("Comment")]
         [DisplayName("Comment")]

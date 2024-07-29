@@ -14,26 +14,30 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OutOfOffice.Components.Data
 {
-    public enum enumActiveStatus
-    {
-        Active,
-        Inactive
-    }
-
     public struct ActiveStatus
     {
         public const string Active = "Active";
 
         public const string Inactive = "Inactive";
+
+        public static List<string> getStringList()
+        {
+            List<string> result = new List<string>();
+            foreach (FieldInfo fieldInfo in typeof(ActiveStatus).GetFields())
+            {
+                result.Add(fieldInfo.Name);
+            }
+            return result;
+        }
     }
 
-    public enum LeaveRequestStatus
+    public struct LeaveRequestStatus
     {
-        New,
-        Submitted,
-        Canceled,
-        Approved,
-        Rejected
+        public const string New = "New";
+        public const string Submitted = "Submitted";
+        public const string Canceled = "Canceled";
+        public const string Approved = "Approved";
+        public const string Rejected = "Rejected";
     }
 
     public struct Positions
@@ -45,21 +49,16 @@ namespace OutOfOffice.Components.Data
         public const string PROJECT_MANAGER = "PROJECT MANAGER";
 
         public const string ADMINISTRATOR = "ADMINISTRATOR";
-    }
 
-    public enum EmployeePositions
+        public static List<string> getStringList()
     {
-        Employee,
-        HR_Manager,
-        Project_Manager,
-        Administrator
-    }
-
-    public enum enumProjectType
+            List<string> result = new List<string>();
+            foreach (FieldInfo fieldInfo in typeof(Positions).GetFields())
     {
-        Frontend,
-        Backend,
-        Services
+                result.Add(fieldInfo.Name);
+            }
+            return result;
+        }
     }
 
     public struct ProjectType
@@ -69,6 +68,16 @@ namespace OutOfOffice.Components.Data
         public const string Backend = "Backend";
 
         public const string Services = "Services";
+
+        public static List<string> getStringList()
+        {
+            List<string> result = new List<string>();
+            foreach (FieldInfo fieldInfo in typeof(ProjectType).GetFields())
+            {
+                result.Add(fieldInfo.Name);
+            }
+            return result;
+        }
     }
 
     public class checkboxOption

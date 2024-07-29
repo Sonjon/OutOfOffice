@@ -55,17 +55,17 @@ namespace OutOfOffice.Components.Data
 
         public async void Submitt()
         {
-            if (this.Status == LeaveRequestStatus.New.ToString())
+            if (this.Status == LeaveRequestStatus.New)
             {
-                this.Status = LeaveRequestStatus.Submitted.ToString();
+                this.Status = LeaveRequestStatus.Submitted;
             }
         }
 
         public async void Cancel()
         {
-            if (this.Status == LeaveRequestStatus.New.ToString())
+            if (this.Status == LeaveRequestStatus.New)
             {
-                this.Status = LeaveRequestStatus.Canceled.ToString();
+                this.Status = LeaveRequestStatus.Canceled;
             }
         }
 

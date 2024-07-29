@@ -89,7 +89,7 @@
 
     async Task UpdateDisabled()
     {
-        if (leaveRequest.Status == LeaveRequestStatus.New.ToString())
+        if (leaveRequest.Status == LeaveRequestStatus.New)
         {
             disabled["Absence_Reason"] = false;
             disabled["Start_Date"] = false;
@@ -135,7 +135,7 @@
 
     async Task CreateDisabled()
     {
-        if (leaveRequest.Status == LeaveRequestStatus.New.ToString())
+        if (leaveRequest.Status == LeaveRequestStatus.New)
         {
             disabled.Add("Absence_Reason", false);
             disabled.Add("Start_Date", false);
