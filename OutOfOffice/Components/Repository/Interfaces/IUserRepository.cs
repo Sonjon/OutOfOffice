@@ -1,4 +1,5 @@
 ﻿using OutOfOffice.Components.Data;
+﻿using OutOfOffice.Components.Common;
 
 namespace OutOfOffice.Components.Repository.Interfaces
 {

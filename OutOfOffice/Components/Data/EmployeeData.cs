@@ -3,11 +3,12 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Principal;
 using OutOfOffice.Components.Backend;
+using OutOfOffice.Components.Common;
 
 namespace OutOfOffice.Components.Data
 {
     [Table("Employee")]
-    public class EmployeeData : TableRowsBaseClass, IEntity
+    public class EmployeeData : BaseData, IEntity
     {
         [Column("ID")]
         public long ID { get; set; }

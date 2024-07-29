@@ -1,8 +1,9 @@
 ﻿using OutOfOffice.Components.Data;
 using static System.Formats.Asn1.AsnWriter;
 using System.Security.Claims;
+using OutOfOffice.Components.Common.Storage.Interfaces;
 
-namespace OutOfOffice.Components.Common
+namespace OutOfOffice.Components.Common.Storage
 {
     public class AuthStorage : IAuthStorage
     {
@@ -37,7 +38,7 @@ namespace OutOfOffice.Components.Common
         public async Task<bool> IsUserLogedInAsync()
         {
             string value = await localStorageAccessor.GetValueAsync<string>(UserAuthData.AuthKeys.IS_LOGGED);
-            if (Boolean.TryParse(value, out bool result))
+            if (bool.TryParse(value, out bool result))
             {
                 return result;
             }

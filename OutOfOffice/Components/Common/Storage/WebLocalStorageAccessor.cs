@@ -1,6 +1,7 @@
 ﻿using Microsoft.JSInterop;
+using OutOfOffice.Components.Common.Storage.Interfaces;
 
-namespace OutOfOffice.Components.Common
+namespace OutOfOffice.Components.Common.Storage
 {
     public class WebLocalStorageAccessor : IAsyncDisposable, ILocalStorageAccessor
     {

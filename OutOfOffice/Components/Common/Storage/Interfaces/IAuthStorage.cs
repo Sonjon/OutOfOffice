@@ -1,6 +1,6 @@
 ﻿using OutOfOffice.Components.Data;
 
-namespace OutOfOffice.Components.Common
+namespace OutOfOffice.Components.Common.Storage.Interfaces
 {
     public interface IAuthStorage
     {

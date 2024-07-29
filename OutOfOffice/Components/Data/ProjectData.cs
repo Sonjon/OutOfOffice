@@ -3,12 +3,14 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Principal;
 using OutOfOffice.Components.Backend;
+using OutOfOffice.Components.Common;
+using OutOfOffice.Components.Common.Validators;
 
 
 namespace OutOfOffice.Components.Data
 {
     [Table("Project")]
-    public class ProjectData : TableRowsBaseClass, IEntity
+    public class ProjectData : BaseData, IEntity
     {
         [Column("ID")]
         public long ID { get; set; }

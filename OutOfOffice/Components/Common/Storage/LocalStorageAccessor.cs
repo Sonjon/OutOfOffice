@@ -1,4 +1,6 @@
-﻿namespace OutOfOffice.Components.Common
+﻿using OutOfOffice.Components.Common.Storage.Interfaces;
+
+namespace OutOfOffice.Components.Common.Storage
 {
     public class LocalStorageAccessor : ILocalStorageAccessor
     {

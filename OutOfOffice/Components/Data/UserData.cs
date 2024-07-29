@@ -8,7 +8,7 @@ using OutOfOffice.Components.Backend;
 namespace OutOfOffice.Components.Data
 {
     [Table("Users")]
-    public class UserData : TableRowsBaseClass, IEntity
+    public class UserData : BaseData, IEntity
     {
         [Column("ID")]
         public long ID { get; set; }

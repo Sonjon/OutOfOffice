@@ -8,8 +8,9 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Identity;
 using static OutOfOffice.Components.Data.UserAuthData;
 using OutOfOffice.Components.Repository.Interfaces;
+using OutOfOffice.Components.Common.Storage.Interfaces;
 
-namespace OutOfOffice.Components.Common
+namespace OutOfOffice.Components.Common.Authentication
 {
     public class ExtAuthenticationStateProvider : AuthenticationStateProvider
     {
