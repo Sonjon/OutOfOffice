@@ -52,15 +52,15 @@ namespace OutOfOffice.Components.Data
 
         public virtual ICollection<EmployeeData>? EmployeesList { get; set; }
 
-        public void Copy(ProjectData employee)
+        public void Copy(ProjectData project)
         {
-            this.ID = employee.ID;
-            this.Project_Type = employee.Project_Type;
-            this.Start_Date = employee.Start_Date;
-            this.End_Date = employee.End_Date;
-            this.Manager = employee.Manager;
-            this.Comment = employee.Comment;
-            this.Status = employee.Status;
+            this.ID = project.ID;
+            this.Project_Type = project.Project_Type;
+            this.Start_Date = project.Start_Date;
+            this.End_Date = project.End_Date;
+            this.Manager = project.Manager;
+            this.Comment = project.Comment;
+            this.Status = project.Status;
         }
 
 

@@ -40,14 +40,14 @@ namespace OutOfOffice.Components.Data
         [ForeignKey("Approver")]
         public virtual EmployeeData? ApproverData { get; set; }
 
-        public void Copy(ApprovalRequestData employee)
+        public void Copy(ApprovalRequestData approvalRequest)
         {
-            this.ID = employee.ID;
-            this.Approver = employee.Approver;
-            this.Approver_String = employee.Approver_String;
-            this.LeaveRequestId = employee.LeaveRequestId;
-            this.Status = employee.Status;
-            this.Comment = employee.Comment;
+            this.ID = approvalRequest.ID;
+            this.Approver = approvalRequest.Approver;
+            this.Approver_String = approvalRequest.Approver_String;
+            this.LeaveRequestId = approvalRequest.LeaveRequestId;
+            this.Status = approvalRequest.Status;
+            this.Comment = approvalRequest.Comment;
         }
 
         public async Task Approve(long id)

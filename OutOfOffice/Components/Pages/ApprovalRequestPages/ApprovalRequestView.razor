@@ -35,8 +35,8 @@
 </EditForm>
 <EditForm Model=@approvalRequest>
     <div class="form-group">
-        <label for="Comment">Comment</label>
-        <InputText @bind-Value=approvalRequest.Comment class="form-control" id="Comment" disabled=@disabled["Comment_approval"] />
+        <label for="Comment_approval">Comment approval</label>
+        <InputText @bind-Value=approvalRequest.Comment class="form-control" id="Comment_approval" disabled=@disabled["Comment_approval"] />
         @if (!hideButtons)
         {
             <button class="btn btn-primary" @onclick="@(() => Approve())" disabled=@disabled["Buttons"]>Approve</button>
