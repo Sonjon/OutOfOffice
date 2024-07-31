@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OutOfOffice.Components.Backend;
+using OutOfOffice.Components.Common;
 using OutOfOffice.Components.Data;
 using OutOfOffice.Components.Repository.Interfaces;
 using System.Collections.Generic;
@@ -10,8 +11,10 @@ namespace OutOfOffice.Components.Repository
 {
     public class LeaveRequestRepository : GenericRepositoryBase<LeaveRequestData>, ILeaveRequestRepository
     {
-        public LeaveRequestRepository(ApplicationDbContext dbContext) : base(dbContext)
+        protected readonly IApprovalRequestRepository approvalRequestRepository;
+        public LeaveRequestRepository(ApplicationDbContext dbContext, IApprovalRequestRepository approvalRequestRepository) : base(dbContext)
         {
+            this.approvalRequestRepository = approvalRequestRepository;
         }
 
         public async Task<List<LeaveRequestData>> GetAllLeaveRequests()
@@ -60,7 +63,7 @@ namespace OutOfOffice.Components.Repository
                 return false;
             }
             LeaveRequestData cleanLeaveRequest = new LeaveRequestData();
-            cleanLeaveRequest.Copy(leaveRequest);
+            cleanLeaveRequest.Copy(leaveRequest); 
             return await base.Create(cleanLeaveRequest);
         }
 
@@ -72,7 +75,13 @@ namespace OutOfOffice.Components.Repository
             }
             LeaveRequestData cleanLeaveRequest = new LeaveRequestData();
             cleanLeaveRequest.Copy(leaveRequest);
-            return await base.Update(cleanLeaveRequest);
+            bool result = await base.Update(cleanLeaveRequest);
+            if (result && leaveRequest.Status == LeaveRequestStatus.Submitted)
+            {
+                await approvalRequestRepository.CreateApprovalRequestFromLeaveRequest(leaveRequest);
+            }
+            return result;
+
         }
     }
 }

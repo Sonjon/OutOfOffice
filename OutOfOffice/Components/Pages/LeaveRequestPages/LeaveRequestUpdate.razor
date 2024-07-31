@@ -63,6 +63,7 @@
         bool result = await leaveRequestRepository.Update(leaveRequest);
         show_alert = true;
         sucess = result;
+        StateHasChanged();
     }
 
     void InvalidFormSubmitted(EditContext editContext)
@@ -74,9 +75,9 @@
     protected async Task Submit()
     {
         leaveRequest.Submitt();
-        await approvalRequestRepository.CreateApprovalRequestFromLeaveRequest(leaveRequest);
         show_alert = true;
         sucess = true;
+        await UpdateDisabled();
         StateHasChanged();
     }
 
@@ -85,6 +86,7 @@
         leaveRequest.Cancel();
         show_alert = true;
         sucess = true;
+        await UpdateDisabled();
         StateHasChanged();
     }
 

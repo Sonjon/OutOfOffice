@@ -111,11 +111,6 @@ else
             leaveRequest= leaveRequests.Where(leaveRequest => leaveRequest.ID == leaveRequest_id).Single();
         leaveRequest.Submitt();
 
-
-        //workaournd for tracking issue
-        leaveRequest.EmployeeData = null;
-        await approvalRequestRepository.CreateApprovalRequestFromLeaveRequest(leaveRequest);
-
         await leaveRequestRepository.Update(leaveRequest);
         StateHasChanged();
     }

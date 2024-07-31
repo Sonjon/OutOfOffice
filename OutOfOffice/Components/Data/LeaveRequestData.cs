@@ -28,11 +28,11 @@ namespace OutOfOffice.Components.Data
 
         [Column("Start Date")]
         [Required, DisplayName("Start Date")]
-        public DateTime Start_Date { get; set; }
+        public DateTime Start_Date { get; set; } = DateTime.Now;
 
         [Column("End Date")]
         [Required, DisplayName("End Date"), DateGreaterThanAttribute(otherPropertyName = "Start_Date", ErrorMessage = "End date must be greater than start date")]
-        public DateTime End_Date { get; set; }
+        public DateTime End_Date { get; set; } = DateTime.Now;
 
         [Column("Comment")]
         [DisplayName("Comment")]
@@ -47,6 +47,7 @@ namespace OutOfOffice.Components.Data
 
         public void Copy(LeaveRequestData leaveRequest)
         {
+            this.ID = leaveRequest.ID;
             this.EmployeeId = leaveRequest.EmployeeId;
             this.Absence_Reason = leaveRequest.Absence_Reason;
             this.Start_Date = leaveRequest.Start_Date;
