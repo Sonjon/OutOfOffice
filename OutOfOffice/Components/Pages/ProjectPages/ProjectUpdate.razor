@@ -54,7 +54,14 @@
             }
         </select>
     </div>
-    <input type="submit" class="btn btn-primary" value="Save" />
+    <AuthorizeView Roles="PROJECT_MANAGER, ADMINISTRATOR">
+        <Authorized Context="innerContext">
+            @if (!hideButtons)
+            {
+                <input type="submit" class="btn btn-primary" value="Save" />
+            }
+        </Authorized>
+    </AuthorizeView>
 </EditForm>
 <ResultMessage show_alert=@show_alert sucess=@sucess Sucess_message="Adding project ended with sucess" Failuer_message="Something went wrong when adding project"></ResultMessage>
 
@@ -64,8 +71,10 @@
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
     bool show_alert = false;
     bool sucess = false;
+    bool hideButtons = false;
+    long my_id;
 
-    [Parameter] 
+    [Parameter]
     public long ProjectId { get; set; }
 
     string LastSubmitResult;
@@ -73,8 +82,10 @@
     protected override async Task OnInitializedAsync()
     {
         await CreateDisabled();
-        project = await projectRepository.GetById((long)ProjectId);
+        my_id = (long)(await AuthenticationStateProvider.GetYourID());
+        project = await projectRepository.GetProject((long)ProjectId);
         managers = await employeeRepository.GetAllProjectManager();
+        await UpdateDisabled();
         StateHasChanged();
     }
 
@@ -96,11 +107,11 @@
     async Task CreateDisabled()
     {
 
-        disabled.Add("Project_Type", false);
-        disabled.Add("Start_Date", false);
-        disabled.Add("End_Date", false);
-        disabled.Add("Status", false);
-        disabled.Add("Manager", false);
+        disabled.TryAdd("Project_Type", false);
+        disabled.TryAdd("Start_Date", false);
+        disabled.TryAdd("End_Date", false);
+        disabled.TryAdd("Status", false);
+        disabled.TryAdd("Manager", false);
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
@@ -121,6 +132,19 @@
                 disabled["Status"] = true;
                 disabled["Manager"] = true;
                 break;
+        }
+    }
+
+    async Task UpdateDisabled()
+    {
+        if (project.EmployeesList.Any<EmployeeData>(employee => employee.ID == my_id))
+        {
+            disabled["Project_Type"] = true;
+            disabled["Start_Date"] = true;
+            disabled["End_Date"] = true;
+            disabled["Status"] = true;
+            disabled["Manager"] = true;
+            hideButtons = true;
         }
     }
 }
