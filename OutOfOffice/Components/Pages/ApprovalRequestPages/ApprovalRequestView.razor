@@ -1,4 +1,4 @@
-﻿@page "/ApprovalRequestView/{ApprovalId:int}"
+﻿@page "/ApprovalRequestView/{ApprovalId:long}"
 @using System.ComponentModel.DataAnnotations;
 @using Data;
 @using Backend;
@@ -52,17 +52,17 @@
     bool show_alert = false;
     bool hideButtons = false;
     bool sucess = false;
-    int my_id;
+    long my_id;
 
     Dictionary<string, bool> disabled = new Dictionary<string, bool>();
 
     [Parameter]
-    public int ApprovalId { get; set; }
+    public long ApprovalId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         await CreateDisabled();
-        my_id = (int)(await AuthenticationStateProvider.GetYourID());
+        my_id = (long)(await AuthenticationStateProvider.GetYourID());
         approvalRequest = await approvalRequestRepository.GetAllApprovalRequestsById(ApprovalId);
         leaveRequest = approvalRequest.LeaveRequest;
     }

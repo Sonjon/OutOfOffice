@@ -50,7 +50,7 @@ namespace OutOfOffice.Components.Data
             this.Comment = employee.Comment;
         }
 
-        public async Task Approve(int id)
+        public async Task Approve(long id)
         {
             if (this.Status == LeaveRequestStatus.Submitted)
             {
@@ -60,7 +60,7 @@ namespace OutOfOffice.Components.Data
             }
         }
 
-        public async Task Reject(int id)
+        public async Task Reject(long id)
         {
             if (this.Status == LeaveRequestStatus.Submitted)
             {

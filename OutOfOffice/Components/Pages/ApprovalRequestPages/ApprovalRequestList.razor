@@ -49,7 +49,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        int my_id = (int)(await AuthenticationStateProvider.GetYourID());
+        long my_id = (long)(await AuthenticationStateProvider.GetYourID());
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:

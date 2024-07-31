@@ -55,14 +55,14 @@ else
 @code {
     List<ProjectData> projects = new List<ProjectData>();
     List<ProjectData> myProjects = new List<ProjectData>();
-    int my_id;
+    long my_id;
     string table = "My";
     string MyTabClass = "active";
     string EmployeesTabClass = "";
 
     protected override async Task OnInitializedAsync()
     {
-        my_id = (int)(await AuthenticationStateProvider.GetYourID());
+        my_id = (long)(await AuthenticationStateProvider.GetYourID());
 
         switch (await AuthenticationStateProvider.GetRole())
         {
