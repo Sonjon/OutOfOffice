@@ -113,10 +113,6 @@
     {
         try
         {
-
-            //workaournd for tracking issue
-            newPerson.ManagerData = null;
-            newPerson.ProjectInformation = null;
             sucess = await employeeRepository.Update(newPerson);
         }
         catch(Exception e)

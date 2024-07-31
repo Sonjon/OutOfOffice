@@ -71,6 +71,8 @@ namespace OutOfOffice.Components.Repository
         public async Task<bool> Update(EmployeeData employee)
         {
             EmployeeData cleanEmployee = new EmployeeData();
+            employee.ManagerData = null;
+            employee.ProjectInformation = null;
             cleanEmployee.Copy(employee);
             return await base.Update(cleanEmployee);
         }
