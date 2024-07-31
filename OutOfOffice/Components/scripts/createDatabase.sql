@@ -1,4 +1,6 @@
-﻿USE OutOfOffice
+﻿-- You need to create OutOfOffice database manually
+-- this sctip only create tables
+USE OutOfOffice
 GO
 CREATE TABLE [dbo].[Employee] (
     [ID]                    BIGINT         IDENTITY (1, 1) NOT NULL,
@@ -10,7 +12,6 @@ CREATE TABLE [dbo].[Employee] (
     [Out-of-Office Balance] INT            NOT NULL,
     [Project]               BIGINT         NULL,
     CONSTRAINT [PK_Employee] PRIMARY KEY CLUSTERED ([ID] ASC),
-    CONSTRAINT [FK_Employee__People_Partner_ID] FOREIGN KEY ([People Partner]) REFERENCES [dbo].[Employee] ([ID])
 );
 
 CREATE TABLE [dbo].[Leave Request] (
@@ -40,7 +41,7 @@ CREATE TABLE [dbo].[Project] (
     [ID]              BIGINT        IDENTITY (1, 1) NOT NULL,
     [Project Type]    VARCHAR (18)  NOT NULL,
     [Start Date]      DATETIME2 (7) NOT NULL,
-    [End Date]        DATETIME2 (7) NULL,
+    [End Date]        DATETIME2 (7) NOT NULL,
     [Project Manager] BIGINT        NOT NULL,
     [Comment]         VARCHAR (MAX) NULL,
     [Status]          VARCHAR (18)  NOT NULL,
@@ -58,4 +59,6 @@ CREATE TABLE [dbo].[Users] (
 );
 
 
+ALTER TABLE [dbo].[Employee] ADD CONSTRAINT [FK_Employee__Project_ID] FOREIGN KEY ([Project]) REFERENCES [dbo].[Project] ([ID]);
+ALTER TABLE [dbo].[Employee] ADD CONSTRAINT [FK_Employee__People_Partner_ID] FOREIGN KEY ([People Partner]) REFERENCES [dbo].[Employee] ([ID])
 
