@@ -22,6 +22,15 @@ namespace OutOfOffice.Components.Repository
             return await FindSingleAsync(querable);
         }
 
+        public async Task<List<ProjectData>> GetProjectAsList(long projectId)
+        {
+            IQueryable<ProjectData> querable = GetQuerable().Where(project => project.ID == projectId)
+                        .Include(project => project.ManagerData)
+                        .Include(project => project.EmployeesList);
+
+            return await FindAsync(querable);
+        }
+
         public async Task<List<ProjectData>> GetAllProject()
         {
             IQueryable<ProjectData> querable =GetQuerable()
@@ -60,6 +69,7 @@ namespace OutOfOffice.Components.Repository
         public async Task<bool> Update(ProjectData project)
         {
             ProjectData cleanProject = new ProjectData();
+            project.EmployeesList = null;
             cleanProject.Copy(project);
             return await base.Update(cleanProject);
         }

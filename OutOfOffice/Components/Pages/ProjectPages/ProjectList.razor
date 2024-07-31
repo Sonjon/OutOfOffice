@@ -17,8 +17,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <PageTitle>Employees List</PageTitle>
-<button @onclick="@(() => AddProject())">Add Project</button>
-
+<AuthorizeView Roles="PROJECT_MANAGER, ADMINISTRATOR">
+    <Authorized Context="innerContext">
+        <button @onclick="@(() => AddProject())">Add Project</button>
+    </Authorized>
+</AuthorizeView>
 <AuthorizeView Roles="HR_MANAGER, PROJECT_MANAGER, ADMINISTRATOR">
     <Authorized Context="innerContext">
         <div class="tab">
@@ -29,25 +32,29 @@
 </AuthorizeView>
 @if (table == "My")
 {
-    <CustomTableComponent TItem="ProjectData" all_rows=@myProjects2>
+    <CustomTableComponent TItem="ProjectData" all_rows=@myProjects>
         <RowButtons>
-            <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
+            <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
         </RowButtons>
     </CustomTableComponent>
 }
 else
 {
-    <CustomTableComponent TItem="ProjectData" all_rows=@projects2>
+    <CustomTableComponent TItem="ProjectData" all_rows=@projects>
         <RowButtons>
-            <td><button @onclick="@(() => Update(context.ID))">Update</button></td>
-            <td><button @onclick="@(() => Deactivate(context.ID))">Deactivate</button></td>
+            <td><button @onclick="@(() => Update(context.ID))">Open</button></td>
+            <AuthorizeView Roles="PROJECT_MANAGER, ADMINISTRATOR">
+                <Authorized Context="innerContext">
+                    <td><button @onclick="@(() => Deactivate(context.ID))" disabled=@checkIfInactive(context.Status)>Deactivate</button></td>
+                </Authorized>
+            </AuthorizeView>
         </RowButtons>
     </CustomTableComponent>
 }
 
 @code {
-    List<ProjectData> projects2 = new List<ProjectData>();
-    List<ProjectData> myProjects2 = new List<ProjectData>();
+    List<ProjectData> projects = new List<ProjectData>();
+    List<ProjectData> myProjects = new List<ProjectData>();
     int my_id;
     string table = "My";
     string MyTabClass = "active";
@@ -60,31 +67,29 @@ else
         switch (await AuthenticationStateProvider.GetRole())
         {
             case UserAuthData.Roles.ADMINISTRATOR:
-                projects2 = await projectRepository.GetAllProject();
+                projects = await projectRepository.GetAllProject();
                 break;
             case UserAuthData.Roles.HR_MANAGER:
-                projects2 = await projectRepository.GetAllHRManagerEmployeeProject(my_id);
+                projects = await projectRepository.GetAllHRManagerEmployeeProject(my_id);
                 break;
             case UserAuthData.Roles.PROJECT_MANAGER:
-                projects2 = await projectRepository.GetAllProjectForProjectManager(my_id);
+                projects = await projectRepository.GetAllProjectForProjectManager(my_id);
                 break;
             case UserAuthData.Roles.EMPLOYEE:
                 break;
         }
 
-        ProjectData pr = await projectRepository.GetProject(11);
-        List<ProjectData> pr2 = await projectRepository.GetAllProject();
         EmployeeData my_employe_data = await employeeRepository.GetById(my_id);
-        if (my_employe_data.ProjectInformation != null)
-            myProjects2.Add(my_employe_data.ProjectInformation);
+        if (my_employe_data.ProjectId != null)
+            myProjects = await projectRepository.GetProjectAsList((long)my_employe_data.ProjectId);
 
 
-        foreach (ProjectData project in projects2)
+        foreach (ProjectData project in projects)
         {
             if (project.ManagerData != null)
                 project.Manager_String = project.ManagerData.Full_Name;
         }
-
+        StateHasChanged();
     }
 
     protected void Update(long id)
@@ -111,7 +116,7 @@ else
 
     protected async Task Deactivate(long project_id)
     {
-        ProjectData project = projects2.Where(project => project.ID == project_id).Single();
+        ProjectData project = projects.Where(project => project.ID == project_id).Single();
         project.Deactivate();
 
         //workaournd for tracking issue
@@ -125,5 +130,10 @@ else
     protected void AddProject()
     {
         navigationManager.NavigateTo($"/ProjectCreator");
+    }
+
+    protected bool checkIfInactive(string status)
+    {
+        return status == ActiveStatus.Inactive;
     }
 }
