@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OutOfOffice.Components.Backend;
+using OutOfOffice.Components.Common;
 using OutOfOffice.Components.Data;
 using OutOfOffice.Components.Repository.Interfaces;
 using System.Collections.Generic;
@@ -9,8 +10,10 @@ namespace OutOfOffice.Components.Repository
 {
     public class ApprovalRequestRepository : GenericRepositoryBase<ApprovalRequestData>, IApprovalRequestRepository
     {
-        public ApprovalRequestRepository(ApplicationDbContext dbContext) : base(dbContext)
+        protected readonly IEmployeeRepository employeeRepository;
+        public ApprovalRequestRepository(ApplicationDbContext dbContext, IEmployeeRepository employeeRepository) : base(dbContext)
         {
+            this.employeeRepository = employeeRepository;
         }
 
         public async Task<List<ApprovalRequestData>> GetAllApprovalRequests()
@@ -62,6 +65,22 @@ namespace OutOfOffice.Components.Repository
             approval.Status = leaveRequest.Status;
 
             return await this.Create(approval);
+        }
+
+        public async Task<bool> Update(ApprovalRequestData approvalRequest)
+        {
+            ApprovalRequestData cleanLeaveRequest = new ApprovalRequestData();
+            cleanLeaveRequest.Copy(approvalRequest);
+            bool result = await base.Update(cleanLeaveRequest);
+            if (result && approvalRequest.Status == LeaveRequestStatus.Approved)
+            {
+                LeaveRequestData leaveRequestData = approvalRequest.LeaveRequest;
+                EmployeeData employeeData = await employeeRepository.GetById(leaveRequestData.EmployeeId);
+                employeeData.Vacation = employeeData.Vacation - (int)(leaveRequestData.End_Date - leaveRequestData.Start_Date).TotalDays;
+                await employeeRepository.Update(employeeData);
+            }
+            return result;
+
         }
     }
 }

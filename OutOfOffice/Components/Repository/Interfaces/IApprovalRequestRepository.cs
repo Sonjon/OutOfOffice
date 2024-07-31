@@ -10,5 +10,6 @@ namespace OutOfOffice.Components.Repository.Interfaces
         Task<List<ApprovalRequestData>> GetAllApprovalRequestProjectManager(long managerID);
         Task<ApprovalRequestData> GetAllApprovalRequestsById(long id);
         Task<bool> CreateApprovalRequestFromLeaveRequest(LeaveRequestData leaveRequest);
+        Task<bool> Update(ApprovalRequestData leaveRequestData);
     }
 }
