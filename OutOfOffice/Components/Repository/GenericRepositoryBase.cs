@@ -50,6 +50,7 @@ namespace OutOfOffice.Components.Repository
 
         public async Task<bool> Update(TEntity entity)
         {
+            this.dbContext.ChangeTracker.Clear();
             this.dbContext.Update(entity);
             int updated = await dbContext.SaveChangesAsync();
             return updated > 0;
